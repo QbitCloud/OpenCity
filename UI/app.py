@@ -1,34 +1,37 @@
 import streamlit as st
-from clients.client import check_backend
+from screens.overview import show_overview
 
-
+# Page setup
 st.set_page_config(
-    page_title="CS699 Project",
-    page_icon="💻",
+    page_title="OpenCity Surat",
     layout="wide"
 )
 
-st.title("CS699 Project")
-st.write("Welcome to the project dashboard!")
+# Sidebar navigation
+st.sidebar.title("OpenCity Surat")
+pages: list[str] = [
+    "Overview",
+    "Finance",
+    "Food",
+    "Health & Environment",
+    "Water & Rain",
+    "Council",
+    "RTI Tracker",
+    "Data Gaps",
+    "Sources",
+    "Data Status",
+    "About"
+]
+selected_page: str = str(st.sidebar.radio("Navigation", pages))
 
-st.sidebar.title("Navigation")
+# Sidebar disclaimer
+st.sidebar.caption("OpenCity Surat")
 
-page = st.sidebar.selectbox(
-    "Select Page",
-    ["Home", "About"]
-)
+def dummy(page_name: str):
+    st.header(page_name)
 
-if page == "Home":
-    st.header("Home")
-    st.write("Your project dashboard will appear here.")
-    if st.button("Check Backend"):
-        try:
-            result = check_backend()
-            st.success("Backend connected successfully!")
-            st.json(result)
-        except requests.RequestException:
-            st.error("Backend connection failed.")
-
-elif page == "About":
-    st.header("About")
-    st.write("This project uses FastAPI and Streamlit.")
+# Main routing
+if selected_page == "Overview":
+    show_overview()
+else:
+    dummy(selected_page)
