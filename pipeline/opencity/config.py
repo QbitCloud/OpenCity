@@ -1,4 +1,3 @@
-"""Paths and politeness settings. Everything can be overridden with environment variables."""
 from __future__ import annotations
 
 import os
