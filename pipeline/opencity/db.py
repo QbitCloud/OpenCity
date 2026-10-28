@@ -1,4 +1,3 @@
-"""SQLite access: schema migration, run/fetch bookkeeping and idempotent upserts."""
 from __future__ import annotations
 
 import json

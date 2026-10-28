@@ -1,12 +1,3 @@
-"""Discovers source adapters: every module in opencity/sources/ that defines SOURCE, fetch() and parse().
-
-Adapter contract (see sources/README.md):
-    SOURCE = Source(id=<module name>, ...)
-    def fetch(ctx) -> Iterable[Raw]          # network only through ctx.get / ctx.post
-    def parse(raw: Raw) -> Result            # pure: no network, no clock, deterministic
-    def validate(result, raw) -> None        # optional; raise ValidationError
-    def interval_hours(now) -> float         # optional; overrides SOURCE.interval_hours (e.g. monsoon)
-"""
 from __future__ import annotations
 
 import importlib

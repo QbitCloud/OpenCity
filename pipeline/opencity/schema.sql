@@ -1,7 +1,4 @@
 -- OpenCity database schema (SQLite).
--- Every number keeps a trail back to the fetch that produced it and the raw
--- snapshot archived for that fetch. Missing data is stored as status
--- 'not_reported', never as 0.
 
 CREATE TABLE IF NOT EXISTS meta (
   key   TEXT PRIMARY KEY,

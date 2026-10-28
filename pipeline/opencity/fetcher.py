@@ -1,11 +1,3 @@
-"""Polite HTTP client (standard library only).
-
-- identifies itself with config.USER_AGENT
-- waits config.HOST_MIN_DELAY seconds between requests to the same host
-- retries network errors and 5xx with backoff; never retries 4xx
-- stops on 403/429 (FetchError(blocked=True)): we do not try to get around blocks
-- supports conditional GET (ETag / Last-Modified) and gzip
-"""
 from __future__ import annotations
 
 import gzip
@@ -13,6 +5,7 @@ import json as jsonlib
 import logging
 import socket
 import ssl
+import ss
 import time
 import urllib.error
 import urllib.parse

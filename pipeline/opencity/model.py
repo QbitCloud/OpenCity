@@ -1,4 +1,3 @@
-"""Plain data types shared by the runner and the source adapters."""
 from __future__ import annotations
 
 import json

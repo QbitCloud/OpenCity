@@ -1,10 +1,3 @@
-"""Write git-friendly CSV exports of the database (stable sort, files rewritten only when they change).
-
-data/export/
-  catalog/sources.csv, metrics.csv, geo.csv
-  observations/<source_id>.csv     one tidy file per source, with provenance columns
-  records/<record_type>.csv        current records, attributes expanded to columns
-"""
 from __future__ import annotations
 
 import csv
