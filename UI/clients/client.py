@@ -10,3 +10,11 @@ def check_backend():
     )
     response.raise_for_status()
     return response.json()
+def get_waste_collection():
+    response = requests.get(
+        f"{API_URL}/api/waste-collection",
+        timeout=10,
+    )
+    response.raise_for_status()
+    return response.json()
+
