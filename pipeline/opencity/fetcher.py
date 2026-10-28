@@ -5,7 +5,6 @@ import json as jsonlib
 import logging
 import socket
 import ssl
-import ss
 import time
 import urllib.error
 import urllib.parse
