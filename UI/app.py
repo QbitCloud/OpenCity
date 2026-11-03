@@ -1,5 +1,6 @@
 import streamlit as st
 from screens.overview import show_overview
+from screens.finance import show_finance
 
 # Page setup
 st.set_page_config(
@@ -33,5 +34,7 @@ def dummy(page_name: str):
 # Main routing
 if selected_page == "Overview":
     show_overview()
+elif selected_page == "Finance":
+    show_finance()
 else:
     dummy(selected_page)

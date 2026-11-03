@@ -1,4 +1,5 @@
 from fastapi import HTTPException
+from SERVER.services.finance import load_finance_summary
 from SERVER.services.waste_collection import load_waste_collection
 from fastapi import APIRouter
 
@@ -30,4 +31,22 @@ def waste_collection():
             detail="No door-to-door waste-collection observations are available.",
         )
 
+    return data
+
+
+@router.get("/api/finance-summary")
+def finance_summary():
+    try:
+        data = load_finance_summary()
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=503,
+            detail="Finance data is unavailable. Run the finance pipeline first.",
+        )
+
+    if not data["metrics"]:
+        raise HTTPException(
+            status_code=503,
+            detail="No reported finance observations are available.",
+        )
     return data
