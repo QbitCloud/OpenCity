@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch
 
+from deepak_pipeline.pipeline import discovery_summary
 from deepak_pipeline.scrapper import discover_balance_sheets
 
 
@@ -21,3 +22,10 @@ class TestFinanceDiscovery(unittest.TestCase):
         reports = discover_balance_sheets()
         self.assertEqual(list(reports), [2021, 2022])
         self.assertTrue(reports[2022].endswith("BalanceSheet_22_23.pdf"))
+
+    def test_summary_shows_oldest_and_latest_year(self):
+        summary = discovery_summary({2021: "one", 2022: "two"})
+        self.assertEqual(
+            summary,
+            "Saved 2 official balance-sheet links: FY 2021-22 to FY 2022-23.",
+        )
