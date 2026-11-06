@@ -1,6 +1,6 @@
 # Deepak Pipeline
 
-This pipeline collects public data for the OpenCity dashboard.
+This pipeline collects public data for the OpenCity dashboard. The first step is to find and store official historic finance documents.
 
 It has two parts:
 
@@ -10,7 +10,18 @@ It has two parts:
 2. **Drinking Water Quality**  
    It collects monthly Surat Municipal Corporation water-quality reports and reads the number of water samples collected, fit samples, and unfit samples.
 
-## How it works
+## Finance discovery
+
+Run this from the repository root:
+
+```bash
+python3 -m pip install -r deepak_pipeline/requirements.txt
+bash scripts/run-deepak.sh
+```
+
+The command saves the official SMC balance-sheet links in a local SQLite database at `data/deepak_finance.db`. That file is ignored by Git.
+
+## Planned workflow
 
 1. The scraper finds official SMC documents.
 2. The parser reads useful values from the documents.
