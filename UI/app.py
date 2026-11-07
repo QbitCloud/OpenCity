@@ -1,15 +1,19 @@
 import streamlit as st
-from screens.overview import show_overview
 
-# Page setup
+from screens.overview import show_overview
+from screens.schools import school
+
+
 st.set_page_config(
     page_title="OpenCity Surat",
-    layout="wide"
+    layout="wide",
 )
 
-# Sidebar navigation
-st.sidebar.title("OpenCity Surat")
-pages: list[str] = [
+st.html("<style>.stMainBlockContainer { padding-top: 3rem; padding-bottom: 3rem; }</style>")
+
+
+pages = [
+    "Schools",
     "Overview",
     "Finance",
     "Food",
@@ -20,18 +24,14 @@ pages: list[str] = [
     "Data Gaps",
     "Sources",
     "Data Status",
-    "About"
+    "About",
 ]
-selected_page: str = str(st.sidebar.radio("Navigation", pages))
 
-# Sidebar disclaimer
-st.sidebar.caption("OpenCity Surat")
+selected_page = st.sidebar.radio("Navigation", pages)
 
-def dummy(page_name: str):
-    st.header(page_name)
-
-# Main routing
 if selected_page == "Overview":
     show_overview()
+elif selected_page == "Schools":
+    school()
 else:
-    dummy(selected_page)
+    st.title(selected_page, anchor=False)
