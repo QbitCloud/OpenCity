@@ -1,0 +1,14 @@
+[server]
+runOnSave = true
+fileWatcherType = "poll"
+
+[client]
+toolbarMode = "minimal"
+
+[theme]
+base = "dark"
+primaryColor = "#629de3"
+backgroundColor = "#0e1117"
+secondaryBackgroundColor = "#1b2029"
+textColor = "#ffffff"
+borderColor = "#629de3"
