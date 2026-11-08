@@ -1,13 +1,16 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from pymongo.errors import PyMongoError
+
+from SERVER.services.hospitals import get_hospital_data
 
 router = APIRouter()
 
 
-@router.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-
-@router.get("/hello/{name}")
-async def say_hello(name: str):
-    return {"message": f"Hello {name}"}
+# Return hospital data through the API
+@router.get("/hospitals")
+def hospitals():
+    try:
+        hospital_data = get_hospital_data()
+        return hospital_data
+    except PyMongoError:
+        raise HTTPException(status_code=503, detail="Hospital database is unavailable")
