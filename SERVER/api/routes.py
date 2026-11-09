@@ -1,13 +1,16 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from pymongo.errors import PyMongoError
+
+from SERVER.services.schools import get_school_data
 
 router = APIRouter()
 
 
-@router.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-
-@router.get("/hello/{name}")
-async def say_hello(name: str):
-    return {"message": f"Hello {name}"}
+# Return school data through the API
+@router.get("/schools")
+def schools():
+    try:
+        school_data = get_school_data()
+        return school_data
+    except PyMongoError:
+        raise HTTPException(status_code=503, detail="School database is unavailable")
