@@ -19,6 +19,18 @@ def connect() -> sqlite3.Connection:
         )
         """
     )
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS finance_observation (
+            financial_year TEXT NOT NULL,
+            metric_id TEXT NOT NULL,
+            value REAL NOT NULL,
+            amount_unit TEXT NOT NULL,
+            source_url TEXT NOT NULL,
+            PRIMARY KEY (financial_year, metric_id)
+        )
+        """
+    )
     return connection
 
 
@@ -39,3 +51,67 @@ def save_document(
         (financial_year, url, discovered_at),
     )
     connection.commit()
+
+
+def save_finance_year(
+    connection: sqlite3.Connection,
+    finance_data: dict,
+    source_url: str,
+) -> None:
+    """Save one year's Finance values without creating duplicates."""
+    financial_year = finance_data["financial_year"]
+    amount_unit = finance_data["amount_unit"]
+
+    for metric_id, value in finance_data.items():
+        if metric_id in {"financial_year", "amount_unit"}:
+            continue
+
+        connection.execute(
+            """
+            INSERT INTO finance_observation (
+                financial_year,
+                metric_id,
+                value,
+                amount_unit,
+                source_url
+            )
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(financial_year, metric_id) DO UPDATE SET
+                value = excluded.value,
+                amount_unit = excluded.amount_unit,
+                source_url = excluded.source_url
+            """,
+            (
+                financial_year,
+                metric_id,
+                value,
+                amount_unit,
+                source_url,
+            ),
+        )
+
+    connection.commit()
+
+
+def read_finance_observations() -> list[dict]:
+    """Return saved values in year and metric order."""
+    connection = connect()
+    rows = connection.execute(
+        """
+        SELECT financial_year, metric_id, value, amount_unit, source_url
+        FROM finance_observation
+        ORDER BY financial_year, metric_id
+        """
+    ).fetchall()
+    connection.close()
+
+    return [
+        {
+            "financial_year": financial_year,
+            "metric_id": metric_id,
+            "value": value,
+            "amount_unit": amount_unit,
+            "source_url": source_url,
+        }
+        for financial_year, metric_id, value, amount_unit, source_url in rows
+    ]

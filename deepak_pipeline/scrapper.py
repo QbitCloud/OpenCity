@@ -37,3 +37,10 @@ def discover_balance_sheets() -> dict[int, str]:
             reports[2000 + int(match.group(1))] = url
 
     return dict(sorted(reports.items()))
+
+
+def fetch_document(url: str) -> bytes:
+    """Download one official balance-sheet PDF."""
+    response = requests.get(url, timeout=60)
+    response.raise_for_status()
+    return response.content
