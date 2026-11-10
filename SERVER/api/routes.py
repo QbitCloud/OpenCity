@@ -1,4 +1,5 @@
 from fastapi import HTTPException
+from SERVER.services.deepak_finance import load_deepak_finance_analysis
 from SERVER.services.finance import load_finance_summary
 from SERVER.services.waste_collection import load_waste_collection
 from fastapi import APIRouter
@@ -49,4 +50,17 @@ def finance_summary():
             status_code=503,
             detail="No reported finance observations are available.",
         )
+    return data
+
+
+@router.get("/api/deepak-finance")
+def deepak_finance_analysis():
+    data = load_deepak_finance_analysis()
+
+    if not data["history"]:
+        raise HTTPException(
+            status_code=503,
+            detail="Historic Finance data is unavailable. Run Deepak's pipeline first.",
+        )
+
     return data
