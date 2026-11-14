@@ -13,3 +13,13 @@ def get_schools():
         return school_data
     except requests.RequestException:
         return None
+
+
+# Get SMC officials from the backend.
+def get_officials():
+    try:
+        response = requests.get(API_URL + "/officials", timeout=30)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException:
+        return None
