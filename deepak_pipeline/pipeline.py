@@ -1,4 +1,5 @@
 """Save official Finance documents and their historic values."""
+import argparse
 from datetime import datetime
 import time
 from zoneinfo import ZoneInfo
@@ -25,7 +26,7 @@ def discovery_summary(reports: dict[int, str]) -> str:
     )
 
 
-def run(first_financial_year: int = 2010) -> int:
+def run(first_financial_year: int = 2007) -> int:
     discovered_at = datetime.now(ZoneInfo("Asia/Kolkata")).isoformat(timespec="seconds")
     reports = discover_balance_sheets()
     database = connect()
@@ -49,4 +50,14 @@ def run(first_financial_year: int = 2010) -> int:
 
 
 if __name__ == "__main__":
-    run()
+    command = argparse.ArgumentParser(
+        description="Store official SMC Finance observations."
+    )
+    command.add_argument(
+        "--from-year",
+        type=int,
+        default=2007,
+        help="First financial-year start to parse (default: 2007).",
+    )
+    arguments = command.parse_args()
+    run(arguments.from_year)

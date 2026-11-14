@@ -21,6 +21,8 @@ bash scripts/run-deepak.sh
 
 The command saves official SMC links and Finance values in MongoDB.
 
+The current parser supports the consistent FY 2007-08 to FY 2025-26 balance-sheet layout. Earlier reports are still discovered and saved as source links, but are not parsed until their older layout has a dedicated validator.
+
 Before running it, create a local `.env` file from `.env.example` and set your MongoDB connection URI. The `.env` file is ignored by Git.
 
 To copy Finance values already saved in the local SQLite file into MongoDB once, run:

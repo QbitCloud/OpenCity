@@ -25,3 +25,13 @@ class TestFinanceParser(unittest.TestCase):
         self.assertEqual(finance_data["finance.total_expenditure"], 2540.00)
         self.assertEqual(finance_data["finance.tax_revenue"], 1300.00)
         self.assertEqual(finance_data["finance.operating_balance"], 320.00)
+
+    def test_reads_an_older_as_on_march_date(self):
+        older_text = SAMPLE_BALANCE_SHEET.replace(
+            "FOR THE YEAR ENDED 31 MARCH, 2025",
+            "As on 31st March 2006",
+        )
+
+        finance_data = read_balance_sheet_text(older_text)
+
+        self.assertEqual(finance_data["financial_year"], "2005-06")

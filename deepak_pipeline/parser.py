@@ -77,7 +77,7 @@ def find_total_before_section(report_text: str, section_name: str) -> float:
 def read_balance_sheet_text(report_text: str) -> dict:
     """Read one financial year's key values from balance-sheet text."""
     year_match = re.search(
-        r"YEAR ENDED 31 MARCH,?\s+(20\d{2})",
+        r"(?:YEAR ENDED|AS ON)\s+31(?:ST)?\s+MARCH,?\s+(20\d{2})",
         report_text,
         re.IGNORECASE,
     )
