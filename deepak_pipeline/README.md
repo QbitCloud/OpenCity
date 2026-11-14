@@ -19,7 +19,15 @@ python3 -m pip install -r deepak_pipeline/requirements.txt
 bash scripts/run-deepak.sh
 ```
 
-The command saves the official SMC balance-sheet links in a local SQLite database at `data/deepak_finance.db`. That file is ignored by Git.
+The command saves official SMC links and Finance values in MongoDB.
+
+Before running it, create a local `.env` file from `.env.example` and set your MongoDB connection URI. The `.env` file is ignored by Git.
+
+To copy Finance values already saved in the local SQLite file into MongoDB once, run:
+
+```bash
+python scripts/migrate-deepak-finance-to-mongodb.py
+```
 
 ## Planned workflow
 
