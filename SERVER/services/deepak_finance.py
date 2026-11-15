@@ -7,6 +7,8 @@ from deepak_pipeline.db import read_finance_observations
 INCOME = "finance.total_income"
 EXPENDITURE = "finance.total_expenditure"
 BALANCE = "finance.operating_balance"
+TAX_REVENUE = "finance.tax_revenue"
+NON_TAX_REVENUE = "finance.non_tax_revenue"
 
 
 def percentage_change(current_value: float, previous_value: float | None) -> float | None:
@@ -66,6 +68,13 @@ def build_history(observations: list[dict]) -> list[dict]:
                 "income": income,
                 "expenditure": expenditure,
                 "operating_balance": row.get(BALANCE, income - expenditure),
+                "tax_revenue": row.get(TAX_REVENUE),
+                "non_tax_revenue": row.get(NON_TAX_REVENUE),
+                "tax_revenue_share_percent": (
+                    round(row[TAX_REVENUE] / income * 100, 2)
+                    if row.get(TAX_REVENUE) is not None and income
+                    else None
+                ),
                 "income_change_percent": percentage_change(income, previous_income),
                 "expenditure_change_percent": percentage_change(
                     expenditure,

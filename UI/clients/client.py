@@ -10,18 +10,27 @@ def check_backend():
     )
     response.raise_for_status()
     return response.json()
-def get_waste_collection():
+def get_finance_summary():
     response = requests.get(
-        f"{API_URL}/api/waste-collection",
+        f"{API_URL}/api/finance-summary",
         timeout=10,
     )
     response.raise_for_status()
     return response.json()
 
 
-def get_finance_summary():
+def get_deepak_finance_analysis():
     response = requests.get(
-        f"{API_URL}/api/finance-summary",
+        f"{API_URL}/api/deepak-finance",
+        timeout=10,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+def get_deepak_water_analysis():
+    response = requests.get(
+        f"{API_URL}/api/deepak-water",
         timeout=10,
     )
     response.raise_for_status()

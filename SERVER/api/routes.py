@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from SERVER.services.deepak_finance import load_deepak_finance_analysis
+from SERVER.services.deepak_water import load_deepak_water_analysis
 from SERVER.services.finance import load_finance_summary
-from SERVER.services.waste_collection import load_waste_collection
 from fastapi import APIRouter
 
 router = APIRouter()
@@ -15,25 +15,6 @@ async def root():
 @router.get("/hello/{name}")
 async def say_hello(name: str):
     return {"message": f"Hello {name}"}
-
-@router.get("/api/waste-collection")
-def waste_collection():
-    try:
-        data = load_waste_collection()
-    except FileNotFoundError:
-        raise HTTPException(
-            status_code=503,
-            detail="Waste-collection data is unavailable. Run the pipeline first.",
-        )
-
-    if not data["observations"]:
-        raise HTTPException(
-            status_code=503,
-            detail="No door-to-door waste-collection observations are available.",
-        )
-
-    return data
-
 
 @router.get("/api/finance-summary")
 def finance_summary():
@@ -61,6 +42,19 @@ def deepak_finance_analysis():
         raise HTTPException(
             status_code=503,
             detail="Historic Finance data is unavailable. Run Deepak's pipeline first.",
+        )
+
+    return data
+
+
+@router.get("/api/deepak-water")
+def deepak_water_analysis():
+    data = load_deepak_water_analysis()
+
+    if not data["history"]:
+        raise HTTPException(
+            status_code=503,
+            detail="Water Quality data is unavailable. Run Deepak's Water pipeline first.",
         )
 
     return data
