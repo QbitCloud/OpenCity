@@ -1,6 +1,6 @@
 import unittest
 
-from deepak_pipeline.parser import read_balance_sheet_text
+from deepak_pipeline.parser import read_balance_sheet_text, read_water_quality_text
 
 
 SAMPLE_BALANCE_SHEET = """
@@ -35,3 +35,17 @@ class TestFinanceParser(unittest.TestCase):
         finance_data = read_balance_sheet_text(older_text)
 
         self.assertEqual(finance_data["financial_year"], "2005-06")
+
+    def test_reads_water_sample_totals(self):
+        report_text = """
+            Monthly laboratory report
+            City total      ૧,૨૩૪     1,220     14
+        """
+
+        water_data = read_water_quality_text(report_text, 2025, 1)
+
+        self.assertEqual(water_data["period_start"], "2025-01-01")
+        self.assertEqual(water_data["samples_collected"], 1234)
+        self.assertEqual(water_data["samples_fit"], 1220)
+        self.assertEqual(water_data["samples_unfit"], 14)
+        self.assertEqual(water_data["compliance_rate_percent"], 98.87)

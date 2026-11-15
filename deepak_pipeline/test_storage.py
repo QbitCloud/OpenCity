@@ -35,3 +35,25 @@ class TestFinanceStorage(unittest.TestCase):
         self.assertEqual(len(observations), 2)
         self.assertEqual(observations[1]["value"], 2900.00)
         self.assertEqual(observations[1]["source_url"], "https://example.test/two.pdf")
+
+    def test_saves_and_updates_a_water_month(self):
+        water_data = {
+            "period_start": "2025-01-01",
+            "samples_collected": 1234,
+            "samples_fit": 1220,
+            "samples_unfit": 14,
+            "compliance_rate_percent": 98.87,
+        }
+
+        connection = db.connect()
+        db.save_water_month(connection, water_data, "https://example.test/one.pdf")
+        water_data["samples_unfit"] = 12
+        db.save_water_month(connection, water_data, "https://example.test/two.pdf")
+        connection.close()
+
+        observations = db.read_water_observations()
+
+        self.assertEqual(len(observations), 4)
+        unfit = next(item for item in observations if item["metric_id"] == "water.samples_unfit")
+        self.assertEqual(unfit["value"], 12)
+        self.assertEqual(unfit["source_url"], "https://example.test/two.pdf")

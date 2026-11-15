@@ -7,6 +7,7 @@ import tempfile
 
 
 AMOUNT_PATTERN = r"(\(?-?[\d,]+\.\d{2}\)?)"
+GUJARATI_DIGITS = str.maketrans("૦૧૨૩૪૫૬૭૮૯", "0123456789")
 
 
 def get_text_from_pdf(pdf_file: bytes) -> str:
@@ -118,3 +119,34 @@ def read_balance_sheet_pdf(pdf_file: bytes) -> dict:
     """Read Finance values directly from one PDF file."""
     report_text = get_text_from_pdf(pdf_file)
     return read_balance_sheet_text(report_text)
+
+
+def read_water_quality_text(report_text: str, year: int, month: int) -> dict:
+    """Read citywide collected, fit and unfit sample totals from a monthly report."""
+    candidates: list[tuple[int, int, int]] = []
+
+    for line in report_text.splitlines()[:80]:
+        numbers = [
+            int(value.replace(",", ""))
+            for value in re.findall(r"\d[\d,]*", line.translate(GUJARATI_DIGITS))
+        ]
+
+        if len(numbers) == 3 and numbers[0] == numbers[1] + numbers[2]:
+            candidates.append(tuple(numbers))
+
+    if not candidates:
+        raise ValueError("Could not find Water Quality sample totals.")
+
+    collected, fit, unfit = max(candidates, key=lambda values: values[0])
+    return {
+        "period_start": f"{year}-{month:02d}-01",
+        "samples_collected": collected,
+        "samples_fit": fit,
+        "samples_unfit": unfit,
+        "compliance_rate_percent": round(fit / collected * 100, 2),
+    }
+
+
+def read_water_quality_pdf(pdf_file: bytes, year: int, month: int) -> dict:
+    """Read Water Quality values directly from one official PDF."""
+    return read_water_quality_text(get_text_from_pdf(pdf_file), year, month)
