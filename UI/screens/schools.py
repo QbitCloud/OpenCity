@@ -155,6 +155,24 @@ def school():
     st.dataframe(analysis["summary_rows"], hide_index=True, width="stretch")
     st.divider()
 
+    # Issues section: coverage below 75%
+    st.subheader(f"School issues · {selected_year}", anchor=False)
+    st.caption(
+        "Metrics with coverage below 75% for the selected academic year."
+    )
+
+    if not analysis["has_facility_data"]:
+        st.info("Not enough facility data is reported to identify gaps.")
+    elif not analysis["issues"]:
+        st.info("No reported coverage metrics are below 75%.")
+    else:
+        for issue in analysis["issues"]:
+            with st.container(border=True):
+                st.text(issue["title"])
+                st.caption(issue["details"])
+
+    st.divider()
+
     # Footer
     updated_column, source_column = st.columns([3, 1], vertical_alignment="center")
 

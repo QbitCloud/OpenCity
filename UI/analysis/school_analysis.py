@@ -92,6 +92,16 @@ def school_analysis(selected_school):
     })
     coverage_values = facility_values.dropna().sort_values()
 
+    # Show metrics with coverage below 75%
+    issues = []
+    for facility_name, coverage in coverage_values.items():
+        if 0 <= coverage < 75:
+            issues.append({
+                "title": facility_name,
+                "details": f"Coverage: {coverage:.2f}% (below 75%).",
+                "coverage": float(coverage),
+            })
+
     # Row 2, column 3: teachers by management
     teacher_values = pd.Series({
         "Government": numbers.get("ttchGovt"),
@@ -136,5 +146,7 @@ def school_analysis(selected_school):
         "teacher_labels": teacher_values.index.tolist(),
         "teacher_values": teacher_values.tolist(),
         "summary_rows": summary_rows,
+        "issues": issues,
+        "has_facility_data": not coverage_values.empty,
         "last_fetched": fetched_at,
     }
