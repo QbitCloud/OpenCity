@@ -1,69 +1,64 @@
-"""MongoDB storage for Deepak's Finance pipeline."""
+"""Local SQLite storage for official Finance documents and observations."""
 from __future__ import annotations
 
-import os
-from functools import lru_cache
+import sqlite3
 from pathlib import Path
 
-from pymongo import ASCENDING, MongoClient
-from pymongo.database import Database
-from dotenv import load_dotenv
+
+DATABASE_PATH = Path(__file__).resolve().parents[1] / "data" / "deepak_finance.db"
 
 
-DOCUMENTS = "deepak_finance_documents"
-OBSERVATIONS = "deepak_finance_observations"
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+def connect() -> sqlite3.Connection:
+    """Open the local database and create its duplicate-prevention tables."""
+    DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    connection = sqlite3.connect(DATABASE_PATH)
 
-load_dotenv(PROJECT_ROOT / ".env")
-
-
-@lru_cache
-def get_client() -> MongoClient:
-    """Create one reusable MongoDB client from local environment settings."""
-    mongo_uri = os.environ.get("MONGODB_URI")
-
-    if not mongo_uri:
-        raise RuntimeError("Set MONGODB_URI before running the Finance pipeline.")
-
-    return MongoClient(mongo_uri, serverSelectionTimeoutMS=10_000)
-
-
-def connect() -> Database:
-    """Return the Finance database and create its duplicate-prevention indexes."""
-    database_name = os.environ.get("MONGODB_DATABASE", "opencity")
-    database = get_client()[database_name]
-
-    database[DOCUMENTS].create_index("financial_year", unique=True)
-    database[OBSERVATIONS].create_index(
-        [("financial_year", ASCENDING), ("metric_id", ASCENDING)],
-        unique=True,
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS source_document (
+            financial_year TEXT PRIMARY KEY,
+            url TEXT NOT NULL,
+            discovered_at TEXT NOT NULL
+        )
+        """
     )
-
-    return database
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS finance_observation (
+            financial_year TEXT NOT NULL,
+            metric_id TEXT NOT NULL,
+            value REAL NOT NULL,
+            amount_unit TEXT NOT NULL,
+            source_url TEXT NOT NULL,
+            PRIMARY KEY (financial_year, metric_id)
+        )
+        """
+    )
+    return connection
 
 
 def save_document(
-    database: Database,
+    connection: sqlite3.Connection,
     financial_year: str,
     url: str,
     discovered_at: str,
 ) -> None:
     """Save one official PDF link, replacing it if the page changes later."""
-    database[DOCUMENTS].update_one(
-        {"financial_year": financial_year},
-        {
-            "$set": {
-                "financial_year": financial_year,
-                "url": url,
-                "discovered_at": discovered_at,
-            }
-        },
-        upsert=True,
+    connection.execute(
+        """
+        INSERT INTO source_document (financial_year, url, discovered_at)
+        VALUES (?, ?, ?)
+        ON CONFLICT(financial_year) DO UPDATE SET
+            url = excluded.url,
+            discovered_at = excluded.discovered_at
+        """,
+        (financial_year, url, discovered_at),
     )
+    connection.commit()
 
 
 def save_finance_year(
-    database: Database,
+    connection: sqlite3.Connection,
     finance_data: dict,
     source_url: str,
 ) -> None:
@@ -75,27 +70,52 @@ def save_finance_year(
         if metric_id in {"financial_year", "amount_unit"}:
             continue
 
-        database[OBSERVATIONS].update_one(
-            {
-                "financial_year": financial_year,
-                "metric_id": metric_id,
-            },
-            {
-                "$set": {
-                    "financial_year": financial_year,
-                    "metric_id": metric_id,
-                    "value": value,
-                    "amount_unit": amount_unit,
-                    "source_url": source_url,
-                }
-            },
-            upsert=True,
+        connection.execute(
+            """
+            INSERT INTO finance_observation (
+                financial_year,
+                metric_id,
+                value,
+                amount_unit,
+                source_url
+            )
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(financial_year, metric_id) DO UPDATE SET
+                value = excluded.value,
+                amount_unit = excluded.amount_unit,
+                source_url = excluded.source_url
+            """,
+            (
+                financial_year,
+                metric_id,
+                value,
+                amount_unit,
+                source_url,
+            ),
         )
+
+    connection.commit()
 
 
 def read_finance_observations() -> list[dict]:
     """Return Finance observations in financial-year and metric order."""
-    rows = connect()[OBSERVATIONS].find({}, {"_id": 0}).sort(
-        [("financial_year", ASCENDING), ("metric_id", ASCENDING)]
-    )
-    return list(rows)
+    connection = connect()
+    rows = connection.execute(
+        """
+        SELECT financial_year, metric_id, value, amount_unit, source_url
+        FROM finance_observation
+        ORDER BY financial_year, metric_id
+        """
+    ).fetchall()
+    connection.close()
+
+    return [
+        {
+            "financial_year": financial_year,
+            "metric_id": metric_id,
+            "value": value,
+            "amount_unit": amount_unit,
+            "source_url": source_url,
+        }
+        for financial_year, metric_id, value, amount_unit, source_url in rows
+    ]

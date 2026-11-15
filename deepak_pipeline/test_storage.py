@@ -1,39 +1,21 @@
+import tempfile
 import unittest
-from unittest.mock import MagicMock, patch
+from pathlib import Path
 
 from deepak_pipeline import db
 
 
 class TestFinanceStorage(unittest.TestCase):
     def setUp(self):
-        self.documents = MagicMock()
-        self.observations = MagicMock()
-        self.database = {
-            db.DOCUMENTS: self.documents,
-            db.OBSERVATIONS: self.observations,
-        }
+        self.temporary_folder = tempfile.TemporaryDirectory()
+        self.original_database_path = db.DATABASE_PATH
+        db.DATABASE_PATH = Path(self.temporary_folder.name) / "finance.db"
 
-    def test_saves_a_document_by_financial_year(self):
-        db.save_document(
-            self.database,
-            "FY 2024-25",
-            "https://example.test/2024-25.pdf",
-            "2026-11-14T10:00:00+05:30",
-        )
+    def tearDown(self):
+        db.DATABASE_PATH = self.original_database_path
+        self.temporary_folder.cleanup()
 
-        self.documents.update_one.assert_called_once_with(
-            {"financial_year": "FY 2024-25"},
-            {
-                "$set": {
-                    "financial_year": "FY 2024-25",
-                    "url": "https://example.test/2024-25.pdf",
-                    "discovered_at": "2026-11-14T10:00:00+05:30",
-                }
-            },
-            upsert=True,
-        )
-
-    def test_saves_each_finance_metric_with_an_upsert(self):
+    def test_saves_and_updates_a_finance_year(self):
         finance_data = {
             "financial_year": "2024-25",
             "amount_unit": "INR",
@@ -41,20 +23,15 @@ class TestFinanceStorage(unittest.TestCase):
             "finance.total_expenditure": 2540.00,
         }
 
-        db.save_finance_year(
-            self.database,
-            finance_data,
-            "https://example.test/2024-25.pdf",
-        )
+        connection = db.connect()
+        db.save_finance_year(connection, finance_data, "https://example.test/one.pdf")
 
-        self.assertEqual(self.observations.update_one.call_count, 2)
+        finance_data["finance.total_income"] = 2900.00
+        db.save_finance_year(connection, finance_data, "https://example.test/two.pdf")
+        connection.close()
 
-    def test_reads_sorted_observations(self):
-        self.observations.find.return_value.sort.return_value = [
-            {"financial_year": "2024-25", "metric_id": "finance.total_income"}
-        ]
+        observations = db.read_finance_observations()
 
-        with patch("deepak_pipeline.db.connect", return_value=self.database):
-            rows = db.read_finance_observations()
-
-        self.assertEqual(rows[0]["financial_year"], "2024-25")
+        self.assertEqual(len(observations), 2)
+        self.assertEqual(observations[1]["value"], 2900.00)
+        self.assertEqual(observations[1]["source_url"], "https://example.test/two.pdf")
