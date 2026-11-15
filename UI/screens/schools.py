@@ -2,6 +2,7 @@ import streamlit as st
 
 from analysis.school_analysis import get_academic_years, school_analysis
 from clients.backend import get_schools
+from screens.issues import issue_details
 from components.charts import bar_chart, pie_chart
 from components.school_charts import school_facility_chart
 
@@ -168,8 +169,22 @@ def school():
     else:
         for issue in analysis["issues"]:
             with st.container(border=True):
-                st.text(issue["title"])
-                st.caption(issue["details"])
+                issue_column, action_column = st.columns([4, 1], vertical_alignment="center")
+                with issue_column:
+                    st.text(issue["title"])
+                    st.caption(issue["details"])
+                with action_column:
+                    if st.button("See issue", key="issue_" + issue["title"], width="stretch"):
+                        st.session_state.issue_source_page = st.Page(school, title="School")
+                        st.session_state.selected_issue = {
+                            "metric": issue["title"],
+                            "category": "Education",
+                            "location": "Surat district",
+                            "period": "Academic year " + selected_year,
+                            "source": "UDISE+",
+                            "value": f"{issue['coverage']:.2f}%",
+                        }
+                        st.switch_page(st.Page(issue_details, title="Issue details", url_path="issue"))
 
     st.divider()
 

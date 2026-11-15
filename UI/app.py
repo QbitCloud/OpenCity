@@ -3,6 +3,7 @@ import streamlit as st
 from screens.overview import show_overview
 from screens.schools import school
 from screens.officials import officials
+from screens.issues import issue_details
 
 
 st.set_page_config(
@@ -52,7 +53,13 @@ pages = {
     ],
 }
 
-page = st.navigation(pages, position="hidden")
+issue_page = st.Page(issue_details, title="Issue details", url_path="issue")
+all_pages = []
+for section_pages in pages.values():
+    all_pages.extend(section_pages)
+all_pages.append(issue_page)
+
+page = st.navigation(all_pages, position="hidden")
 
 with st.sidebar:
     for section, section_pages in pages.items():
