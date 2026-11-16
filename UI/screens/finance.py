@@ -51,17 +51,29 @@ def show_finance() -> None:
 
     st.subheader("Quick numbers", anchor=False)
     st.caption("The selected year's income, spending, balance and own-revenue mix.")
-    income_column, expense_column, balance_column, tax_column, share_column = st.columns(5)
+    income_column, expense_column, balance_column, margin_column, tax_column, share_column = st.columns(6)
     with income_column:
         _number_card("Total income", rupees_in_crore(selected["income"]))
     with expense_column:
         _number_card("Total expenditure", rupees_in_crore(selected["expenditure"]))
     with balance_column:
         _number_card("Operating balance", rupees_in_crore(selected["operating_balance"]))
+    with margin_column:
+        _number_card(
+            "Balance margin",
+            percent(analysis["selected_balance_margin_percent"]),
+        )
     with tax_column:
         _number_card("Tax revenue", rupees_in_crore(selected.get("tax_revenue")))
     with share_column:
         _number_card("Tax revenue share", percent(selected.get("tax_revenue_share_percent")))
+
+    latest = data["latest"]
+    if latest["operating_balance"] < 0:
+        st.warning(
+            f"Latest reported year ({latest['financial_year']}): expenditure exceeded "
+            f"income by {rupees_in_crore(abs(latest['operating_balance']))}."
+        )
 
     st.divider()
     history_crore = analysis["history_crore"]
@@ -122,6 +134,33 @@ def show_finance() -> None:
             st.line_chart(history_crore[["tax_revenue_share_percent"]].rename(
                 columns={"tax_revenue_share_percent": "Tax revenue share (%)"}
             ))
+
+    st.divider()
+    change_column, range_column = st.columns(2)
+    largest_change = analysis["largest_annual_change"]
+    with change_column:
+        with st.container(border=True):
+            st.subheader("Largest annual movement", anchor=False)
+            if largest_change:
+                direction = "increase" if largest_change["percent"] >= 0 else "decrease"
+                st.metric(
+                    f"{largest_change['label']} — {largest_change['financial_year']}",
+                    percent(abs(largest_change["percent"])),
+                    direction,
+                )
+                st.caption("Largest absolute year-on-year movement across income and expenditure.")
+    with range_column:
+        with st.container(border=True):
+            st.subheader("Financial stability range", anchor=False)
+            stability = analysis["stability_range"]
+            st.write(
+                f"Strongest balance: **{rupees_in_crore(stability['strongest_balance'])}** "
+                f"in **{stability['strongest_year']}**."
+            )
+            st.write(
+                f"Weakest balance: **{rupees_in_crore(stability['weakest_balance'])}** "
+                f"in **{stability['weakest_year']}**."
+            )
 
     st.divider()
     st.subheader("Metric summary", anchor=False)

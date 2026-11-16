@@ -43,17 +43,20 @@ def show_water() -> None:
     st.divider()
     st.subheader("Latest reported month", anchor=False)
     st.caption(f"{latest['period_start']:%B %Y} — all figures are sample counts.")
-    collected_column, fit_column, unfit_column, rate_column, reports_column = st.columns(5)
+    collected_column, unfit_rate_column, change_column, compliance_column, average_column, coverage_column = st.columns(6)
     with collected_column:
         _number_card("Samples collected", f"{latest['samples_collected']:,.0f}")
-    with fit_column:
-        _number_card("Fit samples", f"{latest['samples_fit']:,.0f}")
-    with unfit_column:
-        _number_card("Unfit samples", f"{latest['samples_unfit']:,.0f}")
-    with rate_column:
-        _number_card("Compliance rate", f"{latest['compliance_rate_percent']:.1f}%")
-    with reports_column:
-        _number_card("Reports available", str(analysis["reported_months"]))
+    with unfit_rate_column:
+        _number_card("Unfit-sample rate", f"{analysis['latest_unfit_rate_percent']:.1f}%")
+    with change_column:
+        change = analysis["latest_unfit_change"]
+        _number_card("Unfit samples vs last month", "First reported month" if change is None else f"{change:+.0f}")
+    with compliance_column:
+        _number_card("12-month compliance", f"{analysis['trailing_compliance_percent']:.1f}%")
+    with average_column:
+        _number_card("Samples vs 12-month average", f"{analysis['latest_samples_vs_average_percent']:+.1f}%")
+    with coverage_column:
+        _number_card("Reporting completeness", f"{analysis['reporting_completeness_percent']:.0f}%")
 
     monthly = analysis["monthly"]
     st.divider()
@@ -74,9 +77,11 @@ def show_water() -> None:
             ))
     with unfit_column:
         with st.container(border=True):
-            st.subheader("Unfit sample trend", anchor=False)
-            st.caption("This is a count, not a measure of severity")
-            st.line_chart(monthly[["samples_unfit"]].rename(columns={"samples_unfit": "Unfit samples"}))
+            st.subheader("Unfit-sample rate", anchor=False)
+            st.caption("Unfit samples as a share of samples collected")
+            st.line_chart(monthly[["unfit_rate_percent"]].rename(
+                columns={"unfit_rate_percent": "Unfit rate (%)"}
+            ))
 
     st.divider()
     collection_column, annual_column, source_column = st.columns(3)
@@ -99,6 +104,10 @@ def show_water() -> None:
                 "Fit and unfit counts come from the city total in each SMC report. "
                 "Use the source link in the table to inspect any month."
             )
+            if analysis["missing_months"]:
+                st.caption("Missing reports: " + ", ".join(analysis["missing_months"]))
+            else:
+                st.caption("All months in the displayed period have a parsed report.")
             st.link_button("View latest SMC report", latest["source_url"], width="stretch")
 
     st.divider()

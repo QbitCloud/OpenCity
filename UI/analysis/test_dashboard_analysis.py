@@ -23,6 +23,7 @@ class TestDashboardAnalysis(unittest.TestCase):
 
         self.assertEqual(result["history_crore"].loc["2024-25", "income"], 2)
         self.assertEqual(result["revenue_mix"].loc["Tax revenue", "₹ crore"], 0.8)
+        self.assertEqual(result["selected_balance_margin_percent"], 25)
 
     def test_water_lists_latest_month_first(self):
         history = [
@@ -47,3 +48,6 @@ class TestDashboardAnalysis(unittest.TestCase):
         result = water_analysis(history)
 
         self.assertEqual(result["summary_rows"].iloc[0]["Month"], "Feb 2025")
+        self.assertEqual(result["latest_unfit_rate_percent"], 2)
+        self.assertEqual(result["latest_unfit_change"], 1)
+        self.assertEqual(result["reporting_completeness_percent"], 100)
