@@ -1,13 +1,16 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from pymongo.errors import PyMongoError
+
+from SERVER.services.courts import get_court_data
 
 router = APIRouter()
 
 
-@router.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-
-@router.get("/hello/{name}")
-async def say_hello(name: str):
-    return {"message": f"Hello {name}"}
+# Return court data through the API
+@router.get("/courts")
+def courts():
+    try:
+        court_data = get_court_data()
+        return court_data
+    except PyMongoError:
+        raise HTTPException(status_code=503, detail="Court database is unavailable")
