@@ -2,6 +2,7 @@ import streamlit as st
 
 from screens.overview import show_overview
 from screens.courts import court
+from screens.schools import school
 
 
 st.set_page_config(
@@ -14,6 +15,7 @@ st.html("<style>.stMainBlockContainer { padding-top: 3rem; padding-bottom: 3rem;
 
 pages = [
     "Courts",
+    "Schools",
     "Overview",
     "Finance",
     "Food",
@@ -33,5 +35,7 @@ if selected_page == "Overview":
     show_overview()
 elif selected_page == "Courts":
     court()
+elif selected_page == "Schools":
+    school()
 else:
     st.title(selected_page, anchor=False)
