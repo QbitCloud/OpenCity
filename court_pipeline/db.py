@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 
+from court_pipeline.responsible import RESPONSIBLE
 from court_pipeline.scrapper import URL
 
 is_connected = False
@@ -25,6 +26,9 @@ def save_courts(courts, scraped_at):
     courts["source_url"] = URL
     courts["scraped_at"] = scraped_at
     courts["date"] = scraped_at[:10]
+
+    # Add the post responsible for each figure, and the judge holding it. The sources are in responsible.py.
+    courts["responsible"] = RESPONSIBLE
 
     # Keep one reading per day. Replace today's reading if it was already saved.
     collection.delete_many({"source_url": URL, "date": courts["date"]})
