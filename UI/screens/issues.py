@@ -1,6 +1,6 @@
 import streamlit as st
 
-from clients.backend import get_officials
+from clients.backend import get_officials, generate_rti
 from screens.overview import show_overview
 
 
@@ -54,6 +54,29 @@ def issue_details():
 
     st.divider()
 
+    # RTI section
     st.subheader("RTI generation", anchor=False)
-    with st.container(border=True, height=120):
-        st.empty()
+    context = (
+        f"For {issue['location']}, {issue['period']}, reported {issue['metric']} "
+        f"is {issue['value']}. Category: {issue['category']}. Source: {issue['source']}."
+    )
+
+    if st.session_state.get("rti_context") != context:
+        st.session_state.rti_context = context
+        st.session_state.rti_text = None
+
+    if not st.session_state.get("rti_text"):
+        with st.spinner("Generating RTI..."):
+            st.session_state.rti_text = generate_rti(context)
+        if not st.session_state.rti_text:
+            st.error("Could not generate the RTI. Check the backend and Ollama, then try again.")
+            if st.button("Try again"):
+                st.rerun()
+            return
+
+    with st.container(border=True):
+        st.text(st.session_state.rti_text)
+
+    if st.button("Generate again"):
+        st.session_state.rti_text = None
+        st.rerun()

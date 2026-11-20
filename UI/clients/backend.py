@@ -23,3 +23,13 @@ def get_officials():
         return response.json()
     except requests.RequestException:
         return None
+
+
+# Generate an RTI from the selected issue.
+def generate_rti(context):
+    try:
+        response = requests.post(API_URL + "/rti/generate", json={"context": context}, timeout=240)
+        response.raise_for_status()
+        return response.json()["text"]
+    except (requests.RequestException, ValueError, KeyError):
+        return None
