@@ -11,6 +11,9 @@ def get_hospitals():
 
         hospital_data = response.json()
         return hospital_data
+    except requests.RequestException:
+        return None
+
 # Get court data from the backend
 def get_courts():
     try:
@@ -19,6 +22,9 @@ def get_courts():
 
         court_data = response.json()
         return court_data
+    except requests.RequestException:
+        return None
+
 # Get school data from the backend
 def get_schools():
     try:
