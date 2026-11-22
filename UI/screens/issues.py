@@ -1,7 +1,48 @@
 import streamlit as st
 
-from clients.backend import get_officials, generate_rti
+from clients.backend import get_court_officials, get_officials, generate_rti
 from screens.overview import show_overview
+
+
+# Show the officials responsible for an issue, read from MongoDB through the backend.
+def show_officials(issue):
+    # Court issues name the figure they are about, and read the posts responsible for it
+    if issue.get("figure"):
+        officials = get_court_officials()
+
+        def matches(official):
+            return issue["figure"] in official["figures"]
+    else:
+        officials = get_officials()
+
+        def matches(official):
+            return official["category"] == issue["category"]
+
+    if officials is None:
+        st.warning("Official details are unavailable.")
+        return
+
+    found = False
+    for official in officials:
+        if not matches(official):
+            continue
+
+        found = True
+        with st.container(border=True):
+            st.subheader(official["name"] or official["designation"], anchor=False)
+            st.text(official["designation"])
+            if official["mobile"]:
+                st.text("Mobile: " + official["mobile"])
+            if official["office_phone"]:
+                st.text("Office: " + official["office_phone"])
+            emails = official["emails"] or [""]
+            if emails[0]:
+                st.text("Email: " + emails[0])
+            if official.get("checked_on"):
+                st.caption(f"Checked on {official['checked_on']} · {official['source_url']}")
+
+    if not found:
+        st.info("No official found for this category.")
 
 
 # Show any selected metric issue and its related officials.
@@ -25,32 +66,14 @@ def issue_details():
         st.caption(f"{issue['location']} · {issue['period']} · {issue['source']}")
 
         st.metric("Reported value", issue["value"])
+        if issue.get("baseline"):
+            st.caption("Baseline: " + issue["baseline"])
 
     st.divider()
 
     # Responsible office
     st.subheader("Responsible office", anchor=False)
-    officials = get_officials()
-
-    if officials is None:
-        st.warning("Official details are unavailable.")
-    else:
-        found = False
-        for official in officials:
-            if official["category"] != issue["category"]:
-                continue
-
-            found = True
-            with st.container(border=True):
-                st.subheader(official["name"], anchor=False)
-                st.text(official["designation"])
-                st.text("Mobile: " + (official["mobile"] or ""))
-                st.text("Office: " + (official["office_phone"] or ""))
-                emails = official["emails"] or [""]
-                st.text("Email: " + (emails[0] or ""))
-
-        if not found:
-            st.info("No official found for this category.")
+    show_officials(issue)
 
     st.divider()
 

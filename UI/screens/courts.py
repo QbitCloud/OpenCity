@@ -1,7 +1,9 @@
 import streamlit as st
 
 from analysis.court_analysis import court_analysis, get_dates
+from analysis.court_score import court_scores
 from clients.backend import get_courts
+from screens.issues import issue_details
 from components.charts import bar_chart, pie_chart
 from components.court_charts import paired_bar_chart
 
@@ -44,15 +46,18 @@ def court():
     st.divider()
 
     analysis = court_analysis(selected_court)
+    scores = court_scores(selected_court, court_records)
 
     # KPI row
     st.subheader("Quick Numbers", anchor=False)
     st.caption(
         "A quick overview of cases pending in the Surat district courts on the selected date. "
         "The clearance rate compares cases disposed with cases filed last month; "
-        "below 100% means the backlog is growing."
+        "below 100% means the backlog is growing. "
+        "The court score rates six court rates against a baseline: "
+        "100 means Surat matches or beats the baseline on all of them."
     )
-    pending_column, civil_column, criminal_column, clearance_column, old_column = st.columns(5)
+    pending_column, civil_column, criminal_column, clearance_column, score_column = st.columns(5)
 
     # KPI column 1: Pending cases
     with pending_column:
@@ -82,12 +87,11 @@ def court():
             st.header(f":yellow[{analysis['clearance_text']}]", anchor=False, width="content", text_alignment="center")
             show_responsible(analysis["clearance_person"])
 
-    # KPI column 5: Older than 5 years
-    with old_column:
+    # KPI column 5: Court score against the baseline
+    with score_column:
         with st.container(border=True, horizontal_alignment="center"):
-            st.text("Older than 5 years", width="content", text_alignment="center")
-            st.header(f":yellow[{analysis['old_text']}]", anchor=False, width="content", text_alignment="center")
-            show_responsible(analysis["old_person"])
+            st.text("Court score", width="content", text_alignment="center")
+            st.header(f":yellow[{scores['score_text']}]", anchor=False, width="content", text_alignment="center")
 
     st.divider()
 
@@ -161,6 +165,36 @@ def court():
         "Figures are shown as published; the age bands may not add up exactly to the total."
     )
     st.dataframe(analysis["summary_rows"], hide_index=True, width="stretch")
+    st.divider()
+
+    # Issues section: metrics below the baseline or worse than the last reading
+    st.subheader(f"Court issues · {selected_date}", anchor=False)
+    st.caption("Metrics below the baseline, or that got worse since the last reading.")
+
+    if not scores["issues"]:
+        st.info("No metric is below the baseline or got worse since the last reading.")
+    else:
+        for issue in scores["issues"]:
+            with st.container(border=True):
+                issue_column, action_column = st.columns([4, 1], vertical_alignment="center")
+                with issue_column:
+                    st.text(issue["title"])
+                    st.caption(issue["details"])
+                with action_column:
+                    if st.button("See issue", key="issue_" + issue["title"], width="stretch"):
+                        st.session_state.issue_source_page = st.Page(court, title="Courts")
+                        st.session_state.selected_issue = {
+                            "metric": issue["title"],
+                            "category": "Courts",
+                            "location": "Surat district",
+                            "period": "NJDG reading of " + selected_date,
+                            "source": "NJDG",
+                            "value": issue["value"],
+                            "baseline": issue["baseline"],
+                            "figure": issue["figure"],
+                        }
+                        st.switch_page(st.Page(issue_details, title="Issue details", url_path="issue"))
+
     st.divider()
 
     # Footer

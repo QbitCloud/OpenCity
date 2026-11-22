@@ -8,6 +8,7 @@ from SERVER.services.hospitals import get_hospital_data
 from SERVER.services.courts import get_court_data
 from SERVER.services.schools import get_school_data
 from SERVER.services.officials import get_officials_data
+from SERVER.services.court_officials import get_court_officials_data
 
 from SERVER.services.deepak_finance import load_deepak_finance_analysis
 from SERVER.services.deepak_water import load_deepak_water_analysis
@@ -97,6 +98,15 @@ def officials():
         return get_officials_data()
     except PyMongoError:
         raise HTTPException(status_code=503, detail="Officials database is unavailable")
+
+
+# Posts responsible for the court figures through the API
+@router.get("/court-officials")
+def court_officials():
+    try:
+        return get_court_officials_data()
+    except PyMongoError:
+        raise HTTPException(status_code=503, detail="Court officials database is unavailable")
 
 
 # Data needed to generate an RTI query.

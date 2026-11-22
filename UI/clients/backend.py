@@ -47,6 +47,16 @@ def get_officials():
         return None
 
 
+# Get the posts responsible for the court figures from the backend.
+def get_court_officials():
+    try:
+        response = requests.get(API_URL + "/court-officials", timeout=30)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException:
+        return None
+
+
 # Generate an RTI from the selected issue.
 def generate_rti(context):
     try:

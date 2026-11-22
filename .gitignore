@@ -1,6 +1,5 @@
 # Python
 __pycache__/
-*.py[cod]
 .venv/
 venv/
 
@@ -9,10 +8,7 @@ venv/
 
 # Environment variables
 .env
-# Pipeline runtime data; CSV exports remain trackable
-data/*.db
-data/*.db-wal
-data/*.db-shm
-data/raw/
-data/logs/
-data/.refresh.lock
+
+#md files
+*.md
+# data/

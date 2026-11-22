@@ -20,6 +20,10 @@
 #   Bharatiya Nagarik Suraksha Sanhita, 2023 (BNSS): https://lawgist.in/bharatiya-nagarik-suraksha-sanhita-2023/13
 #   Legal Services Authorities Act, 1987:            https://www.advocatekhoj.com/library/bareacts/legalservicesauthorities/9.php
 
+# Saved with each official in the court_officials collection
+SOURCE_URL = "https://surat.dcourts.gov.in/list-of-judges/"
+CHECKED_ON = "2026-11-18"
+
 
 # Principal District and Sessions Judge: the head of every court in Surat district,
 # both the city courts and the taluka courts.
