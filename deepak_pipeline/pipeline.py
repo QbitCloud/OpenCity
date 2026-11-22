@@ -4,7 +4,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from deepak_pipeline.db import (
-    connect,
+    is_connected,
     save_document,
     save_finance_year,
     save_water_document,
@@ -34,24 +34,25 @@ def discovery_summary(reports: dict[int, str]) -> str:
 
 
 def run_finance(first_financial_year: int = 2007) -> int:
+    if not is_connected:
+        print("Pipeline stopped. MongoDB is not connected.")
+        return 0
+
     discovered_at = datetime.now(ZoneInfo("Asia/Kolkata")).isoformat(timespec="seconds")
     reports = discover_balance_sheets()
-    connection = connect()
-
     saved_years = 0
 
     for start_year, url in reports.items():
-        save_document(connection, financial_year(start_year), url, discovered_at)
+        save_document(financial_year(start_year), url, discovered_at)
 
         if start_year < first_financial_year:
             continue
 
         finance_data = read_balance_sheet_pdf(fetch_document(url))
-        save_finance_year(connection, finance_data, url)
+        save_finance_year(finance_data, url)
         saved_years += 1
         polite_pause()
 
-    connection.close()
     print(discovery_summary(reports))
     print(f"Saved Finance values for {saved_years} years.")
     return len(reports)
@@ -59,24 +60,26 @@ def run_finance(first_financial_year: int = 2007) -> int:
 
 def run_water(first_year: int = 2024) -> int:
     """Discover and store official monthly drinking-water sample totals."""
+    if not is_connected:
+        print("Pipeline stopped. MongoDB is not connected.")
+        return 0
+
     discovered_at = datetime.now(ZoneInfo("Asia/Kolkata")).isoformat(timespec="seconds")
     reports = discover_water_quality_reports()
-    connection = connect()
     saved_months = 0
 
     for (year, month), url in reports.items():
         period_start = f"{year}-{month:02d}-01"
-        save_water_document(connection, period_start, url, discovered_at)
+        save_water_document(period_start, url, discovered_at)
 
         if year < first_year:
             continue
 
         water_data = read_water_quality_pdf(fetch_document(url), year, month)
-        save_water_month(connection, water_data, url)
+        save_water_month(water_data, url)
         saved_months += 1
         polite_pause()
 
-    connection.close()
     print(f"Saved {len(reports)} official Water Quality report links.")
     print(f"Saved Water Quality values for {saved_months} months.")
     return len(reports)

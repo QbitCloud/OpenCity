@@ -1,13 +1,24 @@
 """Prepare Deepak's historic drinking-water quality data for the API."""
 from __future__ import annotations
 
-from deepak_pipeline.db import read_water_observations
+from SERVER.client.mongodb import get_database
 
 
 COLLECTED = "water.samples_collected"
 FIT = "water.samples_fit"
 UNFIT = "water.samples_unfit"
 COMPLIANCE = "water.compliance_rate_percent"
+
+
+# Get Water Quality observations sorted by month and metric
+def read_water_observations() -> list[dict]:
+    database = get_database()
+    collection = database["water_observations"]
+
+    observations = collection.find({}, {"_id": 0})
+    observations = observations.sort([("period_start", 1), ("metric_id", 1)])
+
+    return list(observations)
 
 
 def build_history(observations: list[dict]) -> list[dict]:

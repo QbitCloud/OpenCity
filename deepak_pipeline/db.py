@@ -1,175 +1,63 @@
-"""Local SQLite storage for official Finance and Water Quality observations."""
-from __future__ import annotations
+from pymongo import MongoClient
+from pymongo.errors import PyMongoError
 
-import sqlite3
+from opencity_settings import MONGODB_DB, MONGODB_URI
+
+is_connected = False
+
+try:
+    client = MongoClient(MONGODB_URI, serverSelectionTimeoutMS=10000)
+    client.admin.command("ping")
+    finance_documents = client[MONGODB_DB]["finance_source_documents"]
+    finance_collection = client[MONGODB_DB]["finance_observations"]
+    water_documents = client[MONGODB_DB]["water_source_documents"]
+    water_collection = client[MONGODB_DB]["water_observations"]
+    is_connected = True
+except PyMongoError:
+    print("MongoDB connection failed")
 
 
-from opencity_settings import DEEPAK_DB_PATH
-
-
-DATABASE_PATH = DEEPAK_DB_PATH
-
-
-def connect() -> sqlite3.Connection:
-    """Open the local database and create its duplicate-prevention tables."""
-    DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(DATABASE_PATH)
-
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS source_document (
-            financial_year TEXT PRIMARY KEY,
-            url TEXT NOT NULL,
-            discovered_at TEXT NOT NULL
-        )
-        """
+def save_document(financial_year, url, discovered_at):
+    # Keep one link per financial year. Replace it if the page changes later.
+    finance_documents.delete_many({"financial_year": financial_year})
+    finance_documents.insert_one(
+        {"financial_year": financial_year, "url": url, "discovered_at": discovered_at}
     )
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS finance_observation (
-            financial_year TEXT NOT NULL,
-            metric_id TEXT NOT NULL,
-            value REAL NOT NULL,
-            amount_unit TEXT NOT NULL,
-            source_url TEXT NOT NULL,
-            PRIMARY KEY (financial_year, metric_id)
-        )
-        """
-    )
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS water_source_document (
-            period_start TEXT PRIMARY KEY,
-            url TEXT NOT NULL,
-            discovered_at TEXT NOT NULL
-        )
-        """
-    )
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS water_observation (
-            period_start TEXT NOT NULL,
-            metric_id TEXT NOT NULL,
-            value REAL NOT NULL,
-            source_url TEXT NOT NULL,
-            PRIMARY KEY (period_start, metric_id)
-        )
-        """
-    )
-    connection.commit()
-    return connection
 
 
-def save_document(
-    connection: sqlite3.Connection,
-    financial_year: str,
-    url: str,
-    discovered_at: str,
-) -> None:
-    """Save one official PDF link, replacing it if the page changes later."""
-    connection.execute(
-        """
-        INSERT INTO source_document (financial_year, url, discovered_at)
-        VALUES (?, ?, ?)
-        ON CONFLICT(financial_year) DO UPDATE SET
-            url = excluded.url,
-            discovered_at = excluded.discovered_at
-        """,
-        (financial_year, url, discovered_at),
-    )
-    connection.commit()
-
-
-def save_finance_year(
-    connection: sqlite3.Connection,
-    finance_data: dict,
-    source_url: str,
-) -> None:
-    """Save one year's metrics without creating duplicate observations."""
+def save_finance_year(finance_data, source_url):
     financial_year = finance_data["financial_year"]
     amount_unit = finance_data["amount_unit"]
 
-    for metric_id, value in finance_data.items():
-        if metric_id in {"financial_year", "amount_unit"}:
-            continue
-
-        connection.execute(
-            """
-            INSERT INTO finance_observation (
-                financial_year,
-                metric_id,
-                value,
-                amount_unit,
-                source_url
-            )
-            VALUES (?, ?, ?, ?, ?)
-            ON CONFLICT(financial_year, metric_id) DO UPDATE SET
-                value = excluded.value,
-                amount_unit = excluded.amount_unit,
-                source_url = excluded.source_url
-            """,
-            (
-                financial_year,
-                metric_id,
-                value,
-                amount_unit,
-                source_url,
-            ),
-        )
-
-    connection.commit()
-
-
-def read_finance_observations() -> list[dict]:
-    """Return Finance observations in financial-year and metric order."""
-    connection = connect()
-    rows = connection.execute(
-        """
-        SELECT financial_year, metric_id, value, amount_unit, source_url
-        FROM finance_observation
-        ORDER BY financial_year, metric_id
-        """
-    ).fetchall()
-    connection.close()
-
-    return [
+    observations = [
         {
             "financial_year": financial_year,
             "metric_id": metric_id,
-            "value": value,
+            "value": float(value),
             "amount_unit": amount_unit,
             "source_url": source_url,
         }
-        for financial_year, metric_id, value, amount_unit, source_url in rows
+        for metric_id, value in finance_data.items()
+        if metric_id not in {"financial_year", "amount_unit"}
     ]
 
+    if not observations:
+        raise ValueError("No new data, Existing records were kept.")
 
-def save_water_document(
-    connection: sqlite3.Connection,
-    period_start: str,
-    url: str,
-    discovered_at: str,
-) -> None:
-    """Save a Water Quality report link, replacing it if it changes later."""
-    connection.execute(
-        """
-        INSERT INTO water_source_document (period_start, url, discovered_at)
-        VALUES (?, ?, ?)
-        ON CONFLICT(period_start) DO UPDATE SET
-            url = excluded.url,
-            discovered_at = excluded.discovered_at
-        """,
-        (period_start, url, discovered_at),
+    # Replace this year's values with the new reading, so nothing is duplicated.
+    finance_collection.delete_many({"financial_year": financial_year})
+    finance_collection.insert_many(observations)
+
+
+def save_water_document(period_start, url, discovered_at):
+    # Keep one report link per month. Replace it if it changes later.
+    water_documents.delete_many({"period_start": period_start})
+    water_documents.insert_one(
+        {"period_start": period_start, "url": url, "discovered_at": discovered_at}
     )
-    connection.commit()
 
 
-def save_water_month(
-    connection: sqlite3.Connection,
-    water_data: dict,
-    source_url: str,
-) -> None:
-    """Save one month's clear Water Quality metrics without duplicates."""
+def save_water_month(water_data, source_url):
     period_start = water_data["period_start"]
     values = {
         "water.samples_collected": water_data["samples_collected"],
@@ -178,39 +66,16 @@ def save_water_month(
         "water.compliance_rate_percent": water_data["compliance_rate_percent"],
     }
 
-    for metric_id, value in values.items():
-        connection.execute(
-            """
-            INSERT INTO water_observation (period_start, metric_id, value, source_url)
-            VALUES (?, ?, ?, ?)
-            ON CONFLICT(period_start, metric_id) DO UPDATE SET
-                value = excluded.value,
-                source_url = excluded.source_url
-            """,
-            (period_start, metric_id, value, source_url),
-        )
-
-    connection.commit()
-
-
-def read_water_observations() -> list[dict]:
-    """Return Water Quality observations in month and metric order."""
-    connection = connect()
-    rows = connection.execute(
-        """
-        SELECT period_start, metric_id, value, source_url
-        FROM water_observation
-        ORDER BY period_start, metric_id
-        """
-    ).fetchall()
-    connection.close()
-
-    return [
+    observations = [
         {
             "period_start": period_start,
             "metric_id": metric_id,
-            "value": value,
+            "value": float(value),
             "source_url": source_url,
         }
-        for period_start, metric_id, value, source_url in rows
+        for metric_id, value in values.items()
     ]
+
+    # Replace this month's values with the new reading, so nothing is duplicated.
+    water_collection.delete_many({"period_start": period_start})
+    water_collection.insert_many(observations)

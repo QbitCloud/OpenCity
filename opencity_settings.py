@@ -26,5 +26,4 @@ API_URL = f"http://127.0.0.1:{API_PORT}"
 MONGODB_URI = os.getenv("MONGODB_URI")
 MONGODB_DB = os.getenv("MONGODB_DB", "opencity")
 
-DEEPAK_DB_PATH = ROOT / os.getenv("DEEPAK_DB_PATH", "data/deepak_finance.db")
 FINANCE_CSV_PATH = ROOT / os.getenv("FINANCE_CSV_PATH", "data/export/observations/smc_balance_sheet.csv")

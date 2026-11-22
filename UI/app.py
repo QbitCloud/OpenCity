@@ -25,20 +25,20 @@ st.html("<style>.stMainBlockContainer { padding-top: 3rem; padding-bottom: 3rem;
 
 
 pages = [
-    "Hospitals",
-    "Courts",
-    "Schools",
     "Overview",
+    "Hospitals",
+    "Schools",
     "Finance",
-    "Food",
-    "Health & Environment",
+    "Courts",
     "Water Quality",
-    "Council",
-    "RTI Tracker",
-    "Data Gaps",
-    "Sources",
-    "Data Status",
-    "About",
+    # "Food",
+    # "Health & Environment",
+    # "Council",
+    # "RTI Tracker",
+    # "Data Gaps",
+    # "Sources",
+    # "Data Status",
+    # "About",
 ]
 
 selected_page = st.sidebar.radio("Navigation", pages)

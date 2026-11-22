@@ -1,7 +1,7 @@
 """Prepare Deepak's historic Finance data for the API."""
 from __future__ import annotations
 
-from deepak_pipeline.db import read_finance_observations
+from SERVER.client.mongodb import get_database
 
 
 INCOME = "finance.total_income"
@@ -9,6 +9,17 @@ EXPENDITURE = "finance.total_expenditure"
 BALANCE = "finance.operating_balance"
 TAX_REVENUE = "finance.tax_revenue"
 NON_TAX_REVENUE = "finance.non_tax_revenue"
+
+
+# Get Finance observations sorted by financial year and metric
+def read_finance_observations() -> list[dict]:
+    database = get_database()
+    collection = database["finance_observations"]
+
+    observations = collection.find({}, {"_id": 0})
+    observations = observations.sort([("financial_year", 1), ("metric_id", 1)])
+
+    return list(observations)
 
 
 def percentage_change(current_value: float, previous_value: float | None) -> float | None:

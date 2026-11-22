@@ -57,7 +57,10 @@ def finance_summary():
 
 @router.get("/api/deepak-finance")
 def deepak_finance_analysis():
-    data = load_deepak_finance_analysis()
+    try:
+        data = load_deepak_finance_analysis()
+    except PyMongoError:
+        raise HTTPException(status_code=503, detail="Historic Finance database is unavailable")
 
     if not data["history"]:
         raise HTTPException(
@@ -70,7 +73,10 @@ def deepak_finance_analysis():
 
 @router.get("/api/deepak-water")
 def deepak_water_analysis():
-    data = load_deepak_water_analysis()
+    try:
+        data = load_deepak_water_analysis()
+    except PyMongoError:
+        raise HTTPException(status_code=503, detail="Water Quality database is unavailable")
 
     if not data["history"]:
         raise HTTPException(
