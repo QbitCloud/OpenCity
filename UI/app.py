@@ -1,6 +1,10 @@
 import streamlit as st
 
 from screens.overview import show_overview
+from screens.finance import show_finance
+from screens.water import show_water
+
+from screens.overview import show_overview
 from screens.hospitals import hospital
 from screens.courts import court
 from screens.schools import school
@@ -22,7 +26,7 @@ pages = [
     "Finance",
     "Food",
     "Health & Environment",
-    "Water & Rain",
+    "Water Quality",
     "Council",
     "RTI Tracker",
     "Data Gaps",
@@ -41,5 +45,9 @@ elif selected_page == "Courts":
     court()
 elif selected_page == "Schools":
     school()
+elif selected_page == "Finance":
+    show_finance()
+elif selected_page == "Water Quality":
+    show_water()
 else:
     st.title(selected_page, anchor=False)
