@@ -11,4 +11,5 @@ venv/
 
 #md files
 *.md
-# data/
+data/
+docs/
