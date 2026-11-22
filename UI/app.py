@@ -28,22 +28,6 @@ st.html("<style>.stMainBlockContainer { padding-top: 3rem; padding-bottom: 3rem;
 
 st.sidebar.title("OpenCity Surat", anchor=False)
 
-# These pages will get their dashboards later.
-def health():
-    st.title("Health", anchor=False)
-
-
-def water():
-    st.title("Water", anchor=False)
-
-
-def crimes():
-    st.title("Crimes", anchor=False)
-
-
-def finance():
-    st.title("Finance", anchor=False)
-
 
 def sources():
     st.title("Sources", anchor=False)
@@ -54,11 +38,11 @@ pages = {
     "Explore": [
         st.Page(show_overview, title="Home", icon=":material/home:", default=True),
         st.Page(school, title="School", icon=":material/school:"),
-        st.Page(health, title="Health", icon=":material/health_and_safety:"),
+        st.Page(hospital, title="Hospital", icon=":material/health_and_safety:"),
         st.Page(officials, title="Officials", icon=":material/groups:"),
-        st.Page(water, title="Water", icon=":material/water_drop:"),
-        st.Page(crimes, title="Crimes", icon=":material/local_police:"),
-        st.Page(finance, title="Finance", icon=":material/account_balance:"),
+        st.Page(show_water, title="Water Quality", icon=":material/water_drop:"),
+        st.Page(court, title="Courts", icon=":material/local_police:"),
+        st.Page(show_finance, title="Finance", icon=":material/account_balance:"),
     ],
     "Resources": [
         st.Page(sources, title="Sources", icon=":material/link:"),
