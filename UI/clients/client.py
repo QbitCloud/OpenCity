@@ -1,6 +1,6 @@
 import requests
 
-API_URL = "http://127.0.0.1:8000"
+from opencity_settings import API_URL
 
 
 def check_backend():

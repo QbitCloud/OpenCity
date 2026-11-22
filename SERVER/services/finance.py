@@ -1,9 +1,9 @@
 """Read the latest annual SMC finance figures exported by the pipeline."""
 import csv
-from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-CSV_PATH = PROJECT_ROOT / "data" / "export" / "observations" / "smc_balance_sheet.csv"
+from opencity_settings import FINANCE_CSV_PATH
+
+CSV_PATH = FINANCE_CSV_PATH
 
 METRICS = {
     "finance.total_income": "Total income",

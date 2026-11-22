@@ -1,6 +1,8 @@
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 
+from opencity_settings import MONGODB_DB, MONGODB_URI
+
 
 client = None
 
@@ -9,10 +11,7 @@ client = None
 def connect_mongodb():
     global client
 
-    client = MongoClient(
-        "mongodb+srv://meparaglide_db_user:EJQRL7po8sIkrXZx@opencity.gtsikl8.mongodb.net/",
-        serverSelectionTimeoutMS=10000,
-    )
+    client = MongoClient(MONGODB_URI, serverSelectionTimeoutMS=10000)
     try:
         client.admin.command("ping")
     except PyMongoError:
@@ -22,4 +21,4 @@ def connect_mongodb():
 
 # Return the database
 def get_database():
-    return client["opencity"]
+    return client[MONGODB_DB]

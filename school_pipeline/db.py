@@ -1,12 +1,10 @@
 from pymongo import MongoClient
 from school_pipeline.scrapper import URL
+from opencity_settings import MONGODB_DB, MONGODB_URI
 
 # Create a separate client for this pipeline.
-client = MongoClient(
-    "mongodb+srv://meparaglide_db_user:EJQRL7po8sIkrXZx@opencity.gtsikl8.mongodb.net/",
-    serverSelectionTimeoutMS=10000,
-)
-collection = client["opencity"]["school_overview"]
+client = MongoClient(MONGODB_URI, serverSelectionTimeoutMS=10000)
+collection = client[MONGODB_DB]["school_overview"]
 
 
 def next_year():

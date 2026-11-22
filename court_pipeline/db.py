@@ -3,16 +3,14 @@ from pymongo.errors import PyMongoError
 
 from court_pipeline.responsible import RESPONSIBLE
 from court_pipeline.scrapper import URL
+from opencity_settings import MONGODB_DB, MONGODB_URI
 
 is_connected = False
 
 try:
-    client = MongoClient(
-        "mongodb+srv://meparaglide_db_user:EJQRL7po8sIkrXZx@opencity.gtsikl8.mongodb.net/",
-        serverSelectionTimeoutMS=10000,
-    )
+    client = MongoClient(MONGODB_URI, serverSelectionTimeoutMS=10000)
     client.admin.command("ping")
-    collection = client["opencity"]["court_cases"]
+    collection = client[MONGODB_DB]["court_cases"]
     is_connected = True
 except PyMongoError:
     print("MongoDB connection failed")

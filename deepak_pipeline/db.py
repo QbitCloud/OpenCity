@@ -2,10 +2,12 @@
 from __future__ import annotations
 
 import sqlite3
-from pathlib import Path
 
 
-DATABASE_PATH = Path(__file__).resolve().parents[1] / "data" / "deepak_finance.db"
+from opencity_settings import DEEPAK_DB_PATH
+
+
+DATABASE_PATH = DEEPAK_DB_PATH
 
 
 def connect() -> sqlite3.Connection:

@@ -1,4 +1,10 @@
+import sys
+from pathlib import Path
+
 import streamlit as st
+
+# Let the dashboard import opencity_settings from the repo root.
+sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from screens.overview import show_overview
 from screens.finance import show_finance
