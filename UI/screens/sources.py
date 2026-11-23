@@ -73,16 +73,6 @@ def sources():
         ],
         "Score weight": ["35", "25", "25", "15"],
     })
-    st.write(
-        "Each metric receives its weighted points: Green = 100% of its weight, "
-        "Amber = 70%, Orange = 35%, and Red = 0%. "
-        "Finance score = sum of the four weighted metric points, out of 100."
-    )
-    st.caption(
-        "A score is not shown when any of the four required Finance values is missing. "
-        "The Green/Amber/Orange/Red thresholds are OpenCity project-defined bands, "
-        "not official government cut-offs."
-    )
     st.link_button(
         "Data source: SMC balance sheets",
         "https://www.suratmunicipal.gov.in/Departments/Accounts/BalanceSheet",
