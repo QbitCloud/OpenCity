@@ -2,14 +2,18 @@ import streamlit as st
 
 from analysis.hospital_analysis import (
     DETAIL_THRESHOLD,
-    PUBLIC_SHARE_THRESHOLD,
+    PEOPLE_PER_UCHC,
+    PEOPLE_PER_UHC,
+    POPULATION,
     get_hospital_types,
+    health_centre_analysis,
     hospital_analysis,
     hospital_directory,
 )
-from clients.backend import get_hospitals
+from clients.backend import get_health_centres, get_hospitals
 from screens.issues import issue_details
-from components.charts import bar_chart, pie_chart
+from components.charts import pie_chart
+from components.court_charts import paired_bar_chart
 
 
 # Show the hospital dashboard
@@ -38,14 +42,26 @@ def hospital():
     st.divider()
 
     analysis = hospital_analysis(hospital_records)
+    centres = get_health_centres()
+    centre_analysis = health_centre_analysis(centres)
 
-    # KPI row
+    # KPI row: listed hospitals, and SMC's urban health centres scored against the national norms
     st.subheader("Quick Numbers", anchor=False)
     st.caption(
-        "A quick overview of the hospitals listed for Surat and who runs them. "
-        "The counts cover every listed hospital, whatever hospital type is selected."
+        "The hospitals listed for Surat district and how many of them are government hospitals, whatever "
+        "hospital type is selected. Then the urban health centres (UHC) and urban community health centres (UCHC) "
+        "run by Surat Municipal Corporation. "
+        f"The health score rates them against the National Urban Health Mission norms of one UHC for every "
+        f"{PEOPLE_PER_UHC:,} people and one UCHC for every {PEOPLE_PER_UCHC:,} people, using Surat's "
+        f"Census 2011 population of {POPULATION:,}. 100 means Surat meets both norms."
     )
-    hospital_column, government_column, municipal_column, trust_column, private_column = st.columns(5)
+
+    if centres is None:
+        st.warning("Health centre data is unavailable. Check the backend and MongoDB connection.")
+    elif not centres:
+        st.info("No health centre data found. Run the health pipeline first.")
+
+    hospital_column, government_column, uhc_column, uchc_column, score_column = st.columns(5)
 
     # KPI column 1: Hospitals
     with hospital_column:
@@ -53,63 +69,55 @@ def hospital():
             st.text("Hospitals", width="content", text_alignment="center")
             st.header(f":yellow[{analysis['hospitals_text']}]", anchor=False, width="content", text_alignment="center")
 
-    # KPI column 2: Government
+    # KPI column 2: Government hospitals
     with government_column:
         with st.container(border=True, horizontal_alignment="center"):
-            st.text("Government", width="content", text_alignment="center")
+            st.text("Government hospitals", width="content", text_alignment="center")
             st.header(f":yellow[{analysis['government_text']}]", anchor=False, width="content", text_alignment="center")
 
-    # KPI column 3: Municipal
-    with municipal_column:
+    # KPI column 3: Urban health centres
+    with uhc_column:
         with st.container(border=True, horizontal_alignment="center"):
-            st.text("Municipal", width="content", text_alignment="center")
-            st.header(f":yellow[{analysis['municipal_text']}]", anchor=False, width="content", text_alignment="center")
+            st.text("Urban health centres", width="content", text_alignment="center")
+            st.header(f":yellow[{centre_analysis['uhc_text']}]", anchor=False, width="content", text_alignment="center")
 
-    # KPI column 4: Trust
-    with trust_column:
+    # KPI column 4: Urban community health centres
+    with uchc_column:
         with st.container(border=True, horizontal_alignment="center"):
-            st.text("Trust", width="content", text_alignment="center")
-            st.header(f":yellow[{analysis['trust_text']}]", anchor=False, width="content", text_alignment="center")
+            st.text("Urban community HCs", width="content", text_alignment="center")
+            st.header(f":yellow[{centre_analysis['uchc_text']}]", anchor=False, width="content", text_alignment="center")
 
-    # KPI column 5: Private
-    with private_column:
+    # KPI column 5: Health score against the norms
+    with score_column:
         with st.container(border=True, horizontal_alignment="center"):
-            st.text("Private", width="content", text_alignment="center")
-            st.header(f":yellow[{analysis['private_text']}]", anchor=False, width="content", text_alignment="center")
+            st.text("Health score", width="content", text_alignment="center")
+            st.header(f":yellow[{centre_analysis['score_text']}]", anchor=False, width="content", text_alignment="center")
 
     st.divider()
 
-    # Chart row 1
-    st.subheader("Hospital ownership and types", anchor=False)
-    st.caption(
-        "See how the listed hospitals are split across government, municipal, trust and private "
-        "ownership, the hospital types on the list, and how complete the published details are."
-    )
-    ownership_chart_column, type_chart_column, detail_chart_column = st.columns(3)
+    # Chart row: SMC's health centres and the listed hospitals
+    st.subheader("Health centres and hospitals", anchor=False)
+    st.caption("How SMC's health centres are spread across its zones, and who runs the hospitals listed for Surat district.")
+    zone_chart_column, ownership_chart_column = st.columns(2)
 
-    # Row 1, column 1: Hospital ownership
+    # Column 1: Centres by zone
+    with zone_chart_column:
+        with st.container(border=True):
+            st.subheader("Centres by zone", text_alignment="center", anchor=False)
+            st.caption("Urban health centres (UHC) and urban community health centres (UCHC) in each SMC zone", text_alignment="center")
+
+            paired_bar_chart(
+                centre_analysis["zone_labels"], centre_analysis["zone_uhc"], centre_analysis["zone_uchc"],
+                "UHC", "UCHC", "Centres",
+            )
+
+    # Column 2: Public and private hospitals
     with ownership_chart_column:
         with st.container(border=True):
-            st.subheader("Hospital ownership", text_alignment="center", anchor=False)
-            st.caption("Hospitals by who runs them", text_alignment="center")
+            st.subheader("Public and private", text_alignment="center", anchor=False)
+            st.caption("Public means government or municipal; trust hospitals are run by charities", text_alignment="center")
 
             pie_chart(analysis["ownership_labels"], analysis["ownership_values"])
-
-    # Row 1, column 2: Hospital types
-    with type_chart_column:
-        with st.container(border=True):
-            st.subheader("Hospital types", text_alignment="center", anchor=False)
-            st.caption("Hospitals by listed type", text_alignment="center")
-
-            bar_chart(analysis["type_labels"], analysis["type_values"], "Hospitals")
-
-    # Row 1, column 3: Details reported
-    with detail_chart_column:
-        with st.container(border=True):
-            st.subheader("Details reported", text_alignment="center", anchor=False)
-            st.caption("Hospitals listing each detail (%)", text_alignment="center")
-
-            bar_chart(analysis["detail_labels"], analysis["detail_values"], "Hospitals (%)")
 
     st.divider()
 
@@ -122,20 +130,20 @@ def hospital():
     st.dataframe(hospital_directory(hospital_records, selected_type), hide_index=True, width="stretch")
     st.divider()
 
-    # Issues section: details reported below the threshold
-    period = "Listing fetched " + analysis["fetched_date"]
-    st.subheader(f"Hospital issues · {period}", anchor=False)
-    rule = f"Details reported for fewer than {DETAIL_THRESHOLD}% of listed hospitals."
-    if PUBLIC_SHARE_THRESHOLD is not None:
-        rule += f" Government and municipal hospitals below {PUBLIC_SHARE_THRESHOLD}% of all hospitals."
-    st.caption(rule + " Issues cover every listed hospital, whatever hospital type is selected.")
+    # Issues section: details reported below the threshold, and health centres below the norms
+    st.subheader("Hospital issues", anchor=False)
+    st.caption(
+        f"Hospital details reported for fewer than {DETAIL_THRESHOLD}% of listed hospitals, and SMC health "
+        "centres that fall short of the National Urban Health Mission norms."
+    )
+    issues = analysis["issues"] + centre_analysis["issues"]
 
     if not analysis["has_hospital_data"]:
         st.info("Not enough hospital data is reported to identify gaps.")
-    elif not analysis["issues"]:
-        st.info("No hospital metrics are below their thresholds.")
+    elif not issues:
+        st.info("No hospital or health centre metric is below its threshold.")
     else:
-        for issue in analysis["issues"]:
+        for issue in issues:
             with st.container(border=True):
                 issue_column, action_column = st.columns([4, 1], vertical_alignment="center")
                 with issue_column:
@@ -147,21 +155,24 @@ def hospital():
                         st.session_state.selected_issue = {
                             "metric": issue["title"],
                             "category": "Health",
-                            "location": "Surat district",
-                            "period": period,
-                            "source": "District Surat (surat.nic.in)",
-                            "value": f"{issue['percent']:.2f}%",
+                            "location": issue["location"],
+                            "period": issue["period"],
+                            "source": issue["source"],
+                            "value": issue["value"],
                         }
                         st.switch_page(st.Page(issue_details, title="Issue details", url_path="issue"))
 
     st.divider()
 
     # Footer
-    updated_column, source_column = st.columns([3, 1], vertical_alignment="center")
+    updated_column, hospital_source_column, centre_source_column = st.columns([2, 1, 1], vertical_alignment="center")
 
     with updated_column:
         st.text("Last fetched")
         st.caption(analysis["last_fetched"])
 
-    with source_column:
+    with hospital_source_column:
         st.link_button("View District Surat source", "https://surat.nic.in/public-utility-category/hospitals/", width="stretch")
+
+    with centre_source_column:
+        st.link_button("View SMC health centres", "https://www.suratmunicipal.gov.in/Departments/PMJAYUHC", width="stretch")

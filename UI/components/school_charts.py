@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import streamlit as st
 
-from components.charts import COLORS, TEXT_COLOR
+from components.charts import COLORS, FIGURE_SIZE, TEXT_COLOR, show_figure
 
 
 # school facilities graph
@@ -10,7 +10,7 @@ def school_facility_chart(labels, available_values, functional_values):
         st.info("No facility data reported.")
         return
 
-    figure, axis = plt.subplots(figsize=(6, 5))
+    figure, axis = plt.subplots(figsize=FIGURE_SIZE)
     figure.patch.set_alpha(0)
     axis.set_facecolor("none")
 
@@ -29,5 +29,4 @@ def school_facility_chart(labels, available_values, functional_values):
         border.set_visible(False)
 
     figure.tight_layout()
-    st.pyplot(figure)
-    plt.close(figure)
+    show_figure(figure)

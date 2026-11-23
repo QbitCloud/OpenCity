@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import streamlit as st
 
-from components.charts import COLORS, TEXT_COLOR
+from components.charts import COLORS, FIGURE_SIZE, TEXT_COLOR, show_figure
 
 
 # Two bars for each label, side by side
@@ -10,7 +10,7 @@ def paired_bar_chart(labels, first_values, second_values, first_name, second_nam
         st.info("No data reported for this chart.")
         return
 
-    figure, axis = plt.subplots(figsize=(6, 5))
+    figure, axis = plt.subplots(figsize=FIGURE_SIZE)
     figure.patch.set_alpha(0)
     axis.set_facecolor("none")
 
@@ -28,5 +28,4 @@ def paired_bar_chart(labels, first_values, second_values, first_name, second_nam
         border.set_visible(False)
 
     figure.tight_layout()
-    st.pyplot(figure)
-    plt.close(figure)
+    show_figure(figure)
