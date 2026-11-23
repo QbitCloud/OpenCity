@@ -139,8 +139,10 @@ def court_scores(selected_court, court_records):
                 "figure": responsible_key,
             })
 
+    score = None
     score_text = "No baseline set"
     if scores:
-        score_text = f"{sum(scores) / len(scores):.0f} / 100"
+        score = sum(scores) / len(scores)
+        score_text = f"{score:.0f} / 100"
 
-    return {"score_text": score_text, "issues": issues}
+    return {"score": score, "score_text": score_text, "issues": issues}

@@ -1,5 +1,8 @@
 import streamlit as st
 
+from analysis.court_score import BASELINE, MARGIN, METRICS, format_rate
+from analysis.hospital_analysis import DETAIL_THRESHOLD, PEOPLE_PER_UCHC, PEOPLE_PER_UHC, POPULATION
+
 
 def sources():
     st.title("Sources", anchor=False)
@@ -114,3 +117,67 @@ def sources():
     })
     st.write("Water compliance below 95% → Issue.")
     st.caption("Derived from PJS scoring bands, in the absence of a verified government issue-classification rule directly applicable to our data.")
+
+    st.divider()
+
+    # Court score: Surat's court rates against baselines; the clearance baseline is Gujarat's rate.
+    st.subheader("Courts · India Justice Report 2025", anchor=False)
+    st.table({
+        "Dashboard metric": [label for key, label, unit, better, figure in METRICS],
+        "Better when": ["Higher" if better == "higher" else "Lower" for key, label, unit, better, figure in METRICS],
+        "Baseline": [
+            "Not set · left out of the score" if BASELINE[key] is None else format_rate(BASELINE[key], unit)
+            for key, label, unit, better, figure in METRICS
+        ],
+    })
+    st.write("Clearance rate = cases disposed last month ÷ cases filed last month × 100 (civil + criminal).")
+    st.write(
+        "Metric score = Surat's rate ÷ baseline, capped at 100% (baseline ÷ rate when lower is better). "
+        "Court score = average of the metric scores that have a baseline, out of 100."
+    )
+    st.caption(
+        "The clearance baseline is the case clearance rate of Gujarat's subordinate courts. It uses the same formula "
+        "on NJDG data, but over a year; Surat's rate uses one month, so it moves more from month to month."
+    )
+    st.link_button("Baseline source: India Justice Report 2025 · Gujarat profile, judiciary indicator 16, page 3", "https://indiajusticereport.org/files/Gujarat.pdf#page=3")
+    st.link_button("Indicator definition: India Justice Report · case clearance rate (sub. court), benchmark 100%", "https://indiajusticereport.org/indicator/315/ijr-4/large-states/map")
+    st.subheader("Issue classification rule", anchor=False)
+    st.write(f"A metric more than {MARGIN:.0%} behind its baseline, or worse than at the previous reading → Issue.")
+    st.caption(f"The {MARGIN:.0%} margin and the comparison with the previous reading are dashboard choices.")
+
+    st.divider()
+
+    # Health score: SMC's urban health centres against the NUHM population norms.
+    st.subheader("Hospital · National Urban Health Mission norms", anchor=False)
+    st.table({
+        "Dashboard metric": ["Urban health centres (UHC)", "Urban community health centres (UCHC)"],
+        "Calculation": ["Population ÷ number of UHCs", "Population ÷ number of UCHCs"],
+        "Norm used": [f"1 per {PEOPLE_PER_UHC:,} people", f"1 per {PEOPLE_PER_UCHC:,} people"],
+    })
+    st.write("Metric score = norm ÷ people per centre, capped at 100%. Health score = average of the two metric scores, out of 100.")
+    st.write(f"Population = {POPULATION:,}: the Census 2011 count for Surat Municipal Corporation, within the city limits as extended in 2020.")
+    st.caption(
+        "NUHM sets one U-PHC for every 50,000 people, and one U-CHC for every 2.5 lakh people, or 5 lakh in metros "
+        "(cities above 5 lakh only). Surat is a million-plus city, so the dashboard uses the metro norm. "
+        "The population is from 2011, so today's shortfall is larger than the score shows."
+    )
+    st.link_button("Norm source: NUHM Implementation Framework 2013 · facility norms table, PDF page 12", "https://www.nhsrcindia.org/sites/default/files/2021-06/2.Implementation_Framework_NUHM_2013.pdf#page=12")
+    st.link_button("Population source: SMC demographics · Census 2011", "https://www.suratmunicipal.gov.in/TheCity/Demographics")
+    st.subheader("Issue classification rule", anchor=False)
+    st.write(f"Hospital address, phone or pincode reported for fewer than {DETAIL_THRESHOLD}% of listed hospitals → Issue.")
+    st.write("A centre type below its NUHM norm → Issue.")
+    st.caption(f"The {DETAIL_THRESHOLD}% cutoff is a dashboard choice.")
+
+    st.divider()
+
+    # City score on the Home page.
+    st.subheader("City score", anchor=False)
+    st.write(
+        "City score = average of the School, Hospital, Water Quality, Courts and Finance scores, each for its latest data "
+        "and weighted equally. Pages without a score are left out."
+    )
+    st.caption(
+        "Equal weighting follows the India Justice Report, which weights every indicator, theme and pillar equally. "
+        "The city score is a dashboard summary, not an official rating."
+    )
+    st.link_button("Weighting reference: India Justice Report methodology", "https://indiajusticereport.org/methodology")

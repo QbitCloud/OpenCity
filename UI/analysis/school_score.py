@@ -41,11 +41,12 @@ def school_score(school):
         reported_metrics += 1
 
     if total_weight == 0:
-        return {"score_text": "Not reported", "reported_metrics": 0}
+        return {"score": None, "score_text": "Not reported", "reported_metrics": 0}
 
     score = earned_points / total_weight * 100
 
     return {
+        "score": score,
         "score_text": f"{score:.1f} / 100",
         "reported_metrics": reported_metrics,
     }

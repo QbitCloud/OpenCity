@@ -114,7 +114,7 @@ def hospital_analysis(hospital_records):
 def health_centre_analysis(centres):
     if not centres:
         return {
-            "uhc_text": "Not available", "uchc_text": "Not available", "score_text": "No data", "issues": [],
+            "uhc_text": "Not available", "uchc_text": "Not available", "score": None, "score_text": "No data", "issues": [],
             "zone_labels": [], "zone_uhc": [], "zone_uchc": [],
         }
 
@@ -154,6 +154,7 @@ def health_centre_analysis(centres):
     return {
         "uhc_text": f"{counts.get('uhc', 0):,}",
         "uchc_text": f"{counts.get('uchc', 0):,}",
+        "score": sum(scores) / len(scores),
         "score_text": f"{sum(scores) / len(scores):.0f} / 100",
         "issues": issues,
         "zone_labels": [short_zone(zone) for zone in zones.index],
