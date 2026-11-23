@@ -3,6 +3,9 @@ from __future__ import annotations
 
 import pandas as pd
 
+# Issue when the latest month's compliance rate is below this % (None = rule off)
+COMPLIANCE_THRESHOLD = None
+
 
 def water_analysis(history: list[dict]) -> dict:
     """Prepare monthly trends, annual totals and a source-linked summary table."""
@@ -15,6 +18,7 @@ def water_analysis(history: list[dict]) -> dict:
         data["samples_unfit"] / data["samples_collected"] * 100
     )
     data["unfit_change"] = data["samples_unfit"].diff()
+    data["unfit_rate_change"] = data["unfit_rate_percent"].diff()
 
     trailing_months = data.tail(12)
     expected_months = pd.period_range(
@@ -54,7 +58,39 @@ def water_analysis(history: list[dict]) -> dict:
         "source_url": "Official source",
     })
 
+    # Show low compliance, a rising unfit-sample rate and missing reports for the latest month
+    latest = data.iloc[-1]
+    issues = []
+    compliance = latest["compliance_rate_percent"]
+    if COMPLIANCE_THRESHOLD is not None and pd.notna(compliance) and compliance < COMPLIANCE_THRESHOLD:
+        issues.append({
+            "title": "Compliance rate",
+            "details": f"{compliance:.1f}% of samples were fit (below {COMPLIANCE_THRESHOLD}%).",
+            "value": f"{compliance:.1f}%",
+        })
+
+    # The first reported month has no month before it, so its change is NaN
+    rate_change = latest["unfit_rate_change"]
+    if pd.notna(rate_change) and rate_change > 0:
+        issues.append({
+            "title": "Unfit-sample rate rose",
+            "details": f"Unfit-sample rate is {latest['unfit_rate_percent']:.1f}%, "
+                       f"up {rate_change:.1f} points from the month before.",
+            "value": f"{latest['unfit_rate_percent']:.1f}%",
+        })
+
+    if len(missing_months):
+        missing_text = ", ".join(str(month) for month in missing_months)
+        issues.append({
+            "title": "Missing monthly reports",
+            "details": "No parsed report for: " + missing_text + ".",
+            "value": f"{len(missing_months)} months missing",
+        })
+
     return {
+        "issues": issues,
+        "has_water_data": pd.notna(latest["unfit_rate_percent"]),
+        "latest_month": f"{latest['period_start']:%B %Y}",
         "latest": data.iloc[-1],
         "monthly": data.set_index("period_start"),
         "annual": annual,

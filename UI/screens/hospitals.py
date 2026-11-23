@@ -1,7 +1,14 @@
 import streamlit as st
 
-from analysis.hospital_analysis import get_hospital_types, hospital_analysis, hospital_directory
+from analysis.hospital_analysis import (
+    DETAIL_THRESHOLD,
+    PUBLIC_SHARE_THRESHOLD,
+    get_hospital_types,
+    hospital_analysis,
+    hospital_directory,
+)
 from clients.backend import get_hospitals
+from screens.issues import issue_details
 from components.charts import bar_chart, pie_chart
 
 
@@ -113,6 +120,40 @@ def hospital():
         "Missing details are shown as ‘Not reported’."
     )
     st.dataframe(hospital_directory(hospital_records, selected_type), hide_index=True, width="stretch")
+    st.divider()
+
+    # Issues section: details reported below the threshold
+    period = "Listing fetched " + analysis["fetched_date"]
+    st.subheader(f"Hospital issues · {period}", anchor=False)
+    rule = f"Details reported for fewer than {DETAIL_THRESHOLD}% of listed hospitals."
+    if PUBLIC_SHARE_THRESHOLD is not None:
+        rule += f" Government and municipal hospitals below {PUBLIC_SHARE_THRESHOLD}% of all hospitals."
+    st.caption(rule + " Issues cover every listed hospital, whatever hospital type is selected.")
+
+    if not analysis["has_hospital_data"]:
+        st.info("Not enough hospital data is reported to identify gaps.")
+    elif not analysis["issues"]:
+        st.info("No hospital metrics are below their thresholds.")
+    else:
+        for issue in analysis["issues"]:
+            with st.container(border=True):
+                issue_column, action_column = st.columns([4, 1], vertical_alignment="center")
+                with issue_column:
+                    st.text(issue["title"])
+                    st.caption(issue["details"])
+                with action_column:
+                    if st.button("See issue", key="issue_" + issue["title"], width="stretch"):
+                        st.session_state.issue_source_page = st.Page(hospital, title="Hospital")
+                        st.session_state.selected_issue = {
+                            "metric": issue["title"],
+                            "category": "Health",
+                            "location": "Surat district",
+                            "period": period,
+                            "source": "District Surat (surat.nic.in)",
+                            "value": f"{issue['percent']:.2f}%",
+                        }
+                        st.switch_page(st.Page(issue_details, title="Issue details", url_path="issue"))
+
     st.divider()
 
     # Footer

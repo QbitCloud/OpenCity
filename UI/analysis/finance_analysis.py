@@ -3,6 +3,9 @@ from __future__ import annotations
 
 import pandas as pd
 
+# Issue when tax revenue is below this % of total income (None = rule off)
+TAX_SHARE_THRESHOLD = None
+
 
 def rupees_in_crore(value: float | None) -> str:
     """Format an INR amount in crore, the scale used for the public charts."""
@@ -100,7 +103,37 @@ def finance_analysis(history: list[dict], financial_year: str) -> dict:
         }
     )
 
+    # Show the selected year's deficit, low tax share and spending growth above income growth
+    issues = []
+    balance = selected.get("operating_balance")
+    if pd.notna(balance) and balance < 0:
+        issues.append({
+            "title": "Operating deficit",
+            "details": f"Expenditure exceeded income by {rupees_in_crore(abs(balance))}.",
+            "value": rupees_in_crore(balance),
+        })
+
+    tax_share = selected.get("tax_revenue_share_percent")
+    if TAX_SHARE_THRESHOLD is not None and pd.notna(tax_share) and tax_share < TAX_SHARE_THRESHOLD:
+        issues.append({
+            "title": "Tax revenue share",
+            "details": f"Tax revenue is {percent(tax_share)} of income (below {TAX_SHARE_THRESHOLD}%).",
+            "value": percent(tax_share),
+        })
+
+    income_change = selected.get("income_change_percent")
+    expenditure_change = selected.get("expenditure_change_percent")
+    if pd.notna(income_change) and pd.notna(expenditure_change) and expenditure_change > income_change:
+        issues.append({
+            "title": "Expenditure grew faster than income",
+            "details": f"Expenditure changed {expenditure_change:+.1f}% and income {income_change:+.1f}% "
+                       "from the previous year.",
+            "value": f"{expenditure_change:+.1f}% vs {income_change:+.1f}%",
+        })
+
     return {
+        "issues": issues,
+        "has_finance_data": pd.notna(selected.get("income")) and pd.notna(selected.get("expenditure")),
         "selected": selected,
         "history_crore": history_crore,
         "revenue_mix": revenue_mix,

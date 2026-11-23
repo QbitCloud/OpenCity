@@ -4,8 +4,9 @@ from __future__ import annotations
 import requests
 import streamlit as st
 
-from analysis.water_analysis import water_analysis
+from analysis.water_analysis import COMPLIANCE_THRESHOLD, water_analysis
 from clients.client import get_deepak_water_analysis
+from screens.issues import issue_details
 
 
 def _number_card(label: str, value: str) -> None:
@@ -114,3 +115,35 @@ def show_water() -> None:
     st.subheader("Monthly source summary", anchor=False)
     st.caption("Reported months are shown newest first; missing months are intentionally not filled with zero.")
     st.dataframe(analysis["summary_rows"], hide_index=True, width="stretch")
+    st.divider()
+
+    # Issues section: low compliance, rising unfit-sample rate, missing reports
+    st.subheader(f"Water Quality issues · {analysis['latest_month']}", anchor=False)
+    rule = "An unfit-sample rate higher than the month before, or missing monthly reports."
+    if COMPLIANCE_THRESHOLD is not None:
+        rule += f" Compliance below {COMPLIANCE_THRESHOLD}% in the latest month."
+    st.caption(rule)
+
+    if not analysis["has_water_data"]:
+        st.info("Not enough Water Quality data is reported to identify issues.")
+    elif not analysis["issues"]:
+        st.info("No Water Quality metric crossed its threshold in the latest month.")
+    else:
+        for issue in analysis["issues"]:
+            with st.container(border=True):
+                issue_column, action_column = st.columns([4, 1], vertical_alignment="center")
+                with issue_column:
+                    st.text(issue["title"])
+                    st.caption(issue["details"])
+                with action_column:
+                    if st.button("See issue", key="issue_" + issue["title"], width="stretch"):
+                        st.session_state.issue_source_page = st.Page(show_water, title="Water Quality")
+                        st.session_state.selected_issue = {
+                            "metric": issue["title"],
+                            "category": "Water",
+                            "location": "Surat Municipal Corporation",
+                            "period": analysis["latest_month"],
+                            "source": "SMC Hydraulic department",
+                            "value": issue["value"],
+                        }
+                        st.switch_page(st.Page(issue_details, title="Issue details", url_path="issue"))

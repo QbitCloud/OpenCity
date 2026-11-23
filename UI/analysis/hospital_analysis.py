@@ -1,5 +1,10 @@
 import pandas as pd
 
+# Issue when a detail is reported for fewer than this % of hospitals
+DETAIL_THRESHOLD = 75
+# Issue when government + municipal hospitals are below this % of all hospitals (None = rule off)
+PUBLIC_SHARE_THRESHOLD = None
+
 
 # Start every word with a capital letter, keeping names like ENT as written
 def clean_category(category):
@@ -80,6 +85,26 @@ def hospital_analysis(hospital_records):
     })
     detail_values = detail_values.sort_values()
 
+    # Show details reported for fewer than DETAIL_THRESHOLD % of hospitals
+    issues = []
+    for detail_name, coverage in detail_values.items():
+        if 0 <= coverage < DETAIL_THRESHOLD:
+            issues.append({
+                "title": detail_name + " reported",
+                "details": f"Reported for {coverage:.2f}% of hospitals (below {DETAIL_THRESHOLD}%).",
+                "percent": float(coverage),
+            })
+
+    # Show a low share of government and municipal hospitals
+    public_hospitals = ownership_counts.get("Government", 0) + ownership_counts.get("Municipal", 0)
+    public_share = public_hospitals / total_hospitals * 100 if total_hospitals else 0
+    if PUBLIC_SHARE_THRESHOLD is not None and public_share < PUBLIC_SHARE_THRESHOLD:
+        issues.append({
+            "title": "Government and municipal hospitals",
+            "details": f"{public_share:.2f}% of listed hospitals (below {PUBLIC_SHARE_THRESHOLD}%).",
+            "percent": float(public_share),
+        })
+
     # Format the last fetched time
     fetched_at = pd.to_datetime(hospital_data["scraped_at"].iloc[0])
 
@@ -95,5 +120,8 @@ def hospital_analysis(hospital_records):
         "type_values": type_values.tolist(),
         "detail_labels": detail_values.index.tolist(),
         "detail_values": detail_values.tolist(),
+        "issues": issues,
+        "has_hospital_data": total_hospitals > 0,
+        "fetched_date": fetched_at.strftime("%Y-%m-%d"),
         "last_fetched": fetched_at,
     }
