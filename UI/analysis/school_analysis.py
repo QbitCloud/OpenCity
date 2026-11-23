@@ -1,5 +1,7 @@
 import pandas as pd
 
+from .school_score import ISSUE_THRESHOLD
+
 
 # Format a number, or show that it is missing
 def format_number(value, number_format="{:,.0f}"):
@@ -92,13 +94,13 @@ def school_analysis(selected_school):
     })
     coverage_values = facility_values.dropna().sort_values()
 
-    # Show metrics with coverage below 75%
+    # Show metrics with coverage below 70%
     issues = []
     for facility_name, coverage in coverage_values.items():
-        if 0 <= coverage < 75:
+        if 0 <= coverage < ISSUE_THRESHOLD:
             issues.append({
                 "title": facility_name,
-                "details": f"Coverage: {coverage:.2f}% (below 75%).",
+                "details": f"Coverage: {coverage:.2f}% (below {ISSUE_THRESHOLD}%).",
                 "coverage": float(coverage),
             })
 

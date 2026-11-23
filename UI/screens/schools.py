@@ -1,6 +1,7 @@
 import streamlit as st
 
 from analysis.school_analysis import get_academic_years, school_analysis
+from analysis.school_score import ISSUE_THRESHOLD, WEIGHTS, school_score
 from clients.backend import get_schools
 from screens.issues import issue_details
 from components.charts import bar_chart, pie_chart
@@ -38,14 +39,15 @@ def school():
     st.divider()
 
     analysis = school_analysis(selected_school)
+    score = school_score(selected_school)
 
     # KPI row
     st.subheader("Quick Numbers", anchor=False)
     st.caption(
-        "A quick overview of schools, students, teachers and internet access for the selected year. "
-        "The student–teacher ratio shows the average number of enrolled students per teacher."
+        "Schools, students, teachers, student–teacher ratio and a PGI-D-weighted infrastructure score. "
+        "The score is a dashboard estimate using selected facility metrics, not an official PGI-D score."
     )
-    school_column, student_column, teacher_column, ratio_column, internet_column = st.columns(5)
+    school_column, student_column, teacher_column, ratio_column, score_column = st.columns(5)
 
     # KPI column 1: Schools
     with school_column:
@@ -71,11 +73,13 @@ def school():
             st.text("Students / teacher", width="content", text_alignment="center")
             st.header(f":yellow[{analysis['ratio_text']}]", anchor=False, width="content", text_alignment="center")
 
-    # KPI column 5: Internet access
-    with internet_column:
+    # KPI column 5: Weighted infrastructure score.
+    with score_column:
         with st.container(border=True, horizontal_alignment="center"):
-            st.text("Internet access", width="content", text_alignment="center")
-            st.header(f":yellow[{analysis['internet_text']}]", anchor=False, width="content", text_alignment="center")
+            st.text("Score", width="content", text_alignment="center")
+            st.header(f":yellow[{score['score_text']}]", anchor=False, width="content", text_alignment="center")
+            if score["reported_metrics"] < len(WEIGHTS):
+                st.caption(f"{score['reported_metrics']}/{len(WEIGHTS)} indicators reported", text_alignment="center")
 
     st.divider()
 
@@ -156,16 +160,16 @@ def school():
     st.dataframe(analysis["summary_rows"], hide_index=True, width="stretch")
     st.divider()
 
-    # Issues section: coverage below 75%
+    # Issues section: coverage below 70%
     st.subheader(f"School issues · {selected_year}", anchor=False)
     st.caption(
-        "Metrics with coverage below 75% for the selected academic year."
+        f"Metrics with coverage below {ISSUE_THRESHOLD}% for the selected academic year."
     )
 
     if not analysis["has_facility_data"]:
         st.info("Not enough facility data is reported to identify gaps.")
     elif not analysis["issues"]:
-        st.info("No reported coverage metrics are below 75%.")
+        st.info(f"No reported coverage metrics are below {ISSUE_THRESHOLD}%.")
     else:
         for issue in analysis["issues"]:
             with st.container(border=True):
