@@ -5,6 +5,7 @@ import requests
 import streamlit as st
 
 from analysis.water_analysis import COMPLIANCE_THRESHOLD, water_analysis
+from analysis.water_score import water_score
 from clients.client import get_deepak_water_analysis
 from screens.issues import issue_details
 
@@ -40,11 +41,12 @@ def show_water() -> None:
 
     analysis = water_analysis(history)
     latest = analysis["latest"]
+    score = water_score(latest["compliance_rate_percent"])
 
     st.divider()
     st.subheader("Latest reported month", anchor=False)
-    st.caption(f"{latest['period_start']:%B %Y} — all figures are sample counts.")
-    collected_column, unfit_rate_column, change_column, compliance_column, average_column, coverage_column = st.columns(6)
+    st.caption(f"{latest['period_start']:%B %Y} — sample counts and rates. Score uses dashboard reference bands, not an official PJS city score.")
+    collected_column, unfit_rate_column, change_column, compliance_column, average_column, score_column = st.columns(6)
     with collected_column:
         _number_card("Samples collected", f"{latest['samples_collected']:,.0f}")
     with unfit_rate_column:
@@ -56,8 +58,8 @@ def show_water() -> None:
         _number_card("12-month compliance", f"{analysis['trailing_compliance_percent']:.1f}%")
     with average_column:
         _number_card("Samples vs 12-month average", f"{analysis['latest_samples_vs_average_percent']:+.1f}%")
-    with coverage_column:
-        _number_card("Reporting completeness", f"{analysis['reporting_completeness_percent']:.0f}%")
+    with score_column:
+        _number_card("Score", score)
 
     monthly = analysis["monthly"]
     st.divider()

@@ -3,8 +3,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-# Issue when the latest month's compliance rate is below this % (None = rule off)
-COMPLIANCE_THRESHOLD = None
+from .water_score import ISSUE_THRESHOLD as COMPLIANCE_THRESHOLD
 
 
 def water_analysis(history: list[dict]) -> dict:
