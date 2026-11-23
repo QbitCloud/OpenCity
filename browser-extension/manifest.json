@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "OpenCity RTI Autofill",
+  "version": "1.1.0",
+  "description": "Keep RTI text while you log in, then fill it on the Gujarat RTI portal.",
+  "permissions": ["storage"],
+  "background": {"service_worker": "background.js"},
+  "content_scripts": [
+    {
+      "matches": ["https://onlinerti.gujarat.gov.in/rti_portal", "https://onlinerti.gujarat.gov.in/rti_portal/*"],
+      "js": ["portal.js"],
+      "run_at": "document_start"
+    }
+  ]
+}

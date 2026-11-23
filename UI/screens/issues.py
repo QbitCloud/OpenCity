@@ -2,6 +2,7 @@ import streamlit as st
 
 from clients.backend import get_court_officials, get_officials, generate_rti
 from screens.overview import show_overview
+from clients.rti import get_rti_url
 
 
 # Show the officials responsible for an issue, read from MongoDB through the backend.
@@ -72,7 +73,7 @@ def issue_details():
     st.divider()
 
     # Responsible office
-    st.subheader("Responsible office", anchor=False)
+    st.subheader(f"Related Officials to {issue['category']}", anchor=False)
     show_officials(issue)
 
     st.divider()
@@ -100,6 +101,11 @@ def issue_details():
     with st.container(border=True):
         st.text(st.session_state.rti_text)
 
+    if issue["category"] == "Courts":
+        st.link_button("Open RTI portal", "https://gujarathc-casestatus.nic.in/rtiportal/", type="primary", width="stretch")
+    else:
+        st.link_button("File RTI", get_rti_url(st.session_state.rti_text), type="primary", width="stretch")
+        
     if st.button("Generate again"):
         st.session_state.rti_text = None
         st.rerun()
