@@ -14,6 +14,16 @@ def get_hospitals():
     except requests.RequestException:
         return None
 
+
+# Get SMC urban health centres from the backend
+def get_health_centres():
+    try:
+        response = requests.get(API_URL + "/health-centres", timeout=30)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException:
+        return None
+
 # Get court data from the backend
 def get_courts():
     try:

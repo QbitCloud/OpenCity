@@ -8,13 +8,6 @@ from components.charts import bar_chart, pie_chart
 from components.court_charts import paired_bar_chart
 
 
-# Show the post responsible for a figure, with the judge's name under it if known
-def show_responsible(person):
-    st.caption(f"Responsible: {person['post']}", text_alignment="center")
-    if person["name"]:
-        st.caption(person["name"], text_alignment="center")
-
-
 # Show the court dashboard
 def court():
     # Title and date filter
@@ -51,11 +44,7 @@ def court():
     # KPI row
     st.subheader("Quick Numbers", anchor=False)
     st.caption(
-        "A quick overview of cases pending in the Surat district courts on the selected date. "
-        "The clearance rate compares cases disposed with cases filed last month; "
-        "below 100% means the backlog is growing. "
-        "The court score rates six court rates against a baseline: "
-        "100 means Surat matches or beats the baseline on all of them."
+        "A quick overview of cases pending in the Surat district courts."
     )
     pending_column, civil_column, criminal_column, clearance_column, score_column = st.columns(5)
 
@@ -64,28 +53,24 @@ def court():
         with st.container(border=True, horizontal_alignment="center"):
             st.text("Pending cases", width="content", text_alignment="center")
             st.header(f":yellow[{analysis['pending_text']}]", anchor=False, width="content", text_alignment="center")
-            show_responsible(analysis["pending_person"])
 
     # KPI column 2: Civil
     with civil_column:
         with st.container(border=True, horizontal_alignment="center"):
             st.text("Civil", width="content", text_alignment="center")
             st.header(f":yellow[{analysis['civil_text']}]", anchor=False, width="content", text_alignment="center")
-            show_responsible(analysis["civil_person"])
 
     # KPI column 3: Criminal
     with criminal_column:
         with st.container(border=True, horizontal_alignment="center"):
             st.text("Criminal", width="content", text_alignment="center")
             st.header(f":yellow[{analysis['criminal_text']}]", anchor=False, width="content", text_alignment="center")
-            show_responsible(analysis["criminal_person"])
 
     # KPI column 4: Clearance rate
     with clearance_column:
         with st.container(border=True, horizontal_alignment="center"):
             st.text("Clearance rate", width="content", text_alignment="center")
             st.header(f":yellow[{analysis['clearance_text']}]", anchor=False, width="content", text_alignment="center")
-            show_responsible(analysis["clearance_person"])
 
     # KPI column 5: Court score against the baseline
     with score_column:
@@ -160,8 +145,7 @@ def court():
     # Summary table
     st.subheader("Metric summary", anchor=False)
     st.caption(
-        "All court figures for the selected date in one table, split into civil and criminal cases, "
-        "with the post responsible for each and the judge holding that post. "
+        "All court figures for the selected date in one table, split into civil and criminal cases. "
         "Figures are shown as published; the age bands may not add up exactly to the total."
     )
     st.dataframe(analysis["summary_rows"], hide_index=True, width="stretch")

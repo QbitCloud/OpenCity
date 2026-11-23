@@ -15,16 +15,6 @@ def find_row(rows, name):
     return {"civil": 0, "criminal": 0, "total": 0}
 
 
-# Find the post responsible for one figure, and the judge holding it
-def find_responsible(selected_court, key):
-    responsible = selected_court.get("responsible", {})
-    if key in responsible:
-        return responsible[key]
-
-    # Readings saved before posts were added have no "responsible" field
-    return {"post": "Not recorded", "name": None}
-
-
 # chart data and summary for one reading
 def court_analysis(selected_court):
     total_pending = selected_court["total_pending"]
@@ -54,14 +44,6 @@ def court_analysis(selected_court):
     if total_pending > 0:
         old_text = f"{old_cases / total_pending * 100:.1f}%"
 
-    # Post responsible for each KPI
-    pending_person = find_responsible(selected_court, "total_pending")
-    civil_person = find_responsible(selected_court, "civil_pending")
-    criminal_person = find_responsible(selected_court, "criminal_pending")
-    # The clearance rate comes from cases disposed, so it uses the post responsible for disposals
-    clearance_person = find_responsible(selected_court, "Cases Disposed in Last Month")
-    old_person = find_responsible(selected_court, "pending_by_age")
-
     # Row 1, column 1: civil and criminal pending cases
     case_type_labels = ["Civil", "Criminal"]
     case_type_values = [civil_pending, criminal_pending]
@@ -84,21 +66,17 @@ def court_analysis(selected_court):
     filer_labels = ["Senior citizens", "Women"]
     filer_values = [seniors["total"], women["total"]]
 
-    # Summary table, with the post responsible for each row and the judge holding it
+    # Summary table
     summary_rows = [
-        {"Metric": "Pending cases", "Civil": f"{civil_pending:,}", "Criminal": f"{criminal_pending:,}", "Total": pending_text,
-         "Responsible post": pending_person["post"], "Judge": pending_person["name"] or ""},
+        {"Metric": "Pending cases", "Civil": f"{civil_pending:,}", "Criminal": f"{criminal_pending:,}", "Total": pending_text},
     ]
 
     for row in selected_court["particulars"]:
-        person = find_responsible(selected_court, row["name"])
         summary_rows.append({
             "Metric": row["name"],
             "Civil": f"{row['civil']:,}",
             "Criminal": f"{row['criminal']:,}",
             "Total": f"{row['total']:,}",
-            "Responsible post": person["post"],
-            "Judge": person["name"] or "",
         })
 
     for row in selected_court["pending_by_age"]:
@@ -107,8 +85,6 @@ def court_analysis(selected_court):
             "Civil": f"{row['civil']:,}",
             "Criminal": f"{row['criminal']:,}",
             "Total": f"{row['total']:,}",
-            "Responsible post": old_person["post"],
-            "Judge": old_person["name"] or "",
         })
 
     # Format the last fetched time
@@ -120,11 +96,6 @@ def court_analysis(selected_court):
         "criminal_text": criminal_text,
         "clearance_text": clearance_text,
         "old_text": old_text,
-        "pending_person": pending_person,
-        "civil_person": civil_person,
-        "criminal_person": criminal_person,
-        "clearance_person": clearance_person,
-        "old_person": old_person,
         "case_type_labels": case_type_labels,
         "case_type_values": case_type_values,
         "age_labels": age_labels,

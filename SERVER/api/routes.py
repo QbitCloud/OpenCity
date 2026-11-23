@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 from SERVER.services.rti import generate_rti
 
 from SERVER.services.hospitals import get_hospital_data
+from SERVER.services.health_centres import get_health_centre_data
 from SERVER.services.courts import get_court_data
 from SERVER.services.schools import get_school_data
 from SERVER.services.officials import get_officials_data
@@ -25,6 +26,13 @@ def hospitals():
         return hospital_data
     except PyMongoError:
         raise HTTPException(status_code=503, detail="Hospital database is unavailable")
+# Return SMC urban health centres through the API
+@router.get("/health-centres")
+def health_centres():
+    try:
+        return get_health_centre_data()
+    except PyMongoError:
+        raise HTTPException(status_code=503, detail="Health centre database is unavailable")
 # Return court data through the API
 @router.get("/courts")
 def courts():

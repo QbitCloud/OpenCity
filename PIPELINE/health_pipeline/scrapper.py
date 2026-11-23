@@ -27,12 +27,12 @@ def scrape_centres(html):
             if "hidden-xs" in row.get("class", []):
                 continue
 
-            # Read the first column and remove its "Name" label.
             details = row.find("div", class_="row")
-            column = details.find("div")
-            label = column.find("div")
-            label.decompose()
-            name = column.get_text(strip=True)
+            values = []
+            for column in details.find_all("div", recursive=False):
+                column.find("div").decompose()
+                values.append(column.get_text(" ", strip=True))
+            name, address, phone = values
 
             # Find the facility type from its name.
             if "UCHC" in name:
@@ -48,6 +48,9 @@ def scrape_centres(html):
                 # MH means an attached maternity home.
                 "maternity_home": name.endswith(" MH"),
                 "zone_code": zone,
+                "address": address,
+                # The website shows "-" when no phone number is listed.
+                "phone": phone if phone not in ("", "-") else None,
             })
 
     if not centres:

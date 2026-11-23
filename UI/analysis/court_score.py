@@ -14,8 +14,11 @@ METRICS = [
 
 # The value each metric is scored against, in the metric's unit (percent or months).
 # None means no baseline yet: that metric is left out of the score.
+# https://gujarathighcourt.nic.in/hccms/sites/default/files/IDPReport/Monthly_and_Quarterly_Case_Clearance_Rate_CCR_of_High_Court_of_Gujarat_and_District_Judiciary_of_Gujarat_for_the_Year_2025.pdf
+#       vs
+# URL = "https://njdg.ecourts.gov.in/njdg_v3/?p=home/index&state_code=24~17&dist_code=14"
 BASELINE = {
-    "clearance": None,
+    "clearance": 103,
     "civil_clearance": None,
     "criminal_clearance": None,
     "older_than_5": None,
