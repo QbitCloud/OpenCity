@@ -56,6 +56,48 @@ def sources():
 
     st.divider()
 
+    # Finance score built from the same SMC balance-sheet fields shown on the dashboard.
+    st.subheader("Finance · SMC balance-sheet trend score", anchor=False)
+    st.table({
+        "Dashboard metric": [
+            "Operating balance margin",
+            "Expenditure growth above income growth",
+            "Own-source revenue proxy",
+            "Three-year balance stability",
+        ],
+        "Calculation": [
+            "(Income − expenditure) ÷ income × 100",
+            "Expenditure year-on-year change − income year-on-year change",
+            "(Tax revenue + non-tax revenue) ÷ income × 100",
+            "Number of non-negative operating balances in the latest three years",
+        ],
+        "Score weight": ["35", "25", "25", "15"],
+    })
+    st.write(
+        "Each metric receives its weighted points: Green = 100% of its weight, "
+        "Amber = 70%, Orange = 35%, and Red = 0%. "
+        "Finance score = sum of the four weighted metric points, out of 100."
+    )
+    st.caption(
+        "A score is not shown when any of the four required Finance values is missing. "
+        "The Green/Amber/Orange/Red thresholds are OpenCity project-defined bands, "
+        "not official government cut-offs."
+    )
+    st.link_button(
+        "Data source: SMC balance sheets",
+        "https://www.suratmunicipal.gov.in/Departments/Accounts/BalanceSheet",
+    )
+    st.link_button(
+        "Indicator reference: NUDM Urban Analytics Standard",
+        "https://www.nudm.mohua.gov.in/wp-content/uploads/2025/05/UA-Standard-NUDM.pdf",
+    )
+    st.link_button(
+        "Reporting context: 16th Finance Commission",
+        "https://www.indiabudget.gov.in/doc/16fcvol1.pdf",
+    )
+
+    st.divider()
+
     # Water quality percentage mapped to the PJS scoring bands.
     st.subheader("Water · AMRUT 2.0 / Pey Jal Survekshan 2022", anchor=False)
     st.table({
