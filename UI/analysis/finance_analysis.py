@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import pandas as pd
 
+from .finance_baseline import finance_baseline
+
 # Issue when tax revenue is below this % of total income (None = rule off)
 TAX_SHARE_THRESHOLD = None
 
@@ -58,6 +60,47 @@ def finance_analysis(history: list[dict], financial_year: str) -> dict:
     history_crore = in_crore.set_index("financial_year")
     strongest_year = history_crore["operating_balance"].idxmax()
     weakest_year = history_crore["operating_balance"].idxmin()
+    selected_balance_margin_percent = history_crore.loc[
+        financial_year, "balance_margin_percent"
+    ]
+
+    income = selected.get("income")
+    tax_revenue = selected.get("tax_revenue")
+    non_tax_revenue = selected.get("non_tax_revenue")
+    if (
+        pd.notna(income)
+        and income != 0
+        and pd.notna(tax_revenue)
+        and pd.notna(non_tax_revenue)
+    ):
+        own_source_revenue_percent = (
+            (tax_revenue + non_tax_revenue) / income * 100
+        )
+    else:
+        own_source_revenue_percent = None
+
+    income_change = selected.get("income_change_percent")
+    expenditure_change = selected.get("expenditure_change_percent")
+    if pd.notna(income_change) and pd.notna(expenditure_change):
+        expenditure_growth_gap_points = expenditure_change - income_change
+    else:
+        expenditure_growth_gap_points = None
+
+    reported_through_selected_year = data.loc[
+        data["financial_year"] <= financial_year
+    ].copy()
+    recent_balances = reported_through_selected_year["operating_balance"].tail(3)
+    if len(recent_balances) == 3 and recent_balances.notna().all():
+        non_negative_balance_years = int((recent_balances >= 0).sum())
+    else:
+        non_negative_balance_years = None
+
+    baseline = finance_baseline(
+        balance_margin=selected_balance_margin_percent,
+        expenditure_growth_gap=expenditure_growth_gap_points,
+        own_source_revenue=own_source_revenue_percent,
+        stable_years=non_negative_balance_years,
+    )
 
     revenue_mix = pd.DataFrame(
         {
@@ -121,8 +164,6 @@ def finance_analysis(history: list[dict], financial_year: str) -> dict:
             "value": percent(tax_share),
         })
 
-    income_change = selected.get("income_change_percent")
-    expenditure_change = selected.get("expenditure_change_percent")
     if pd.notna(income_change) and pd.notna(expenditure_change) and expenditure_change > income_change:
         issues.append({
             "title": "Expenditure grew faster than income",
@@ -138,9 +179,11 @@ def finance_analysis(history: list[dict], financial_year: str) -> dict:
         "history_crore": history_crore,
         "revenue_mix": revenue_mix,
         "summary_rows": summary_rows,
-        "selected_balance_margin_percent": history_crore.loc[
-            financial_year, "balance_margin_percent"
-        ],
+        "selected_balance_margin_percent": selected_balance_margin_percent,
+        "own_source_revenue_percent": own_source_revenue_percent,
+        "expenditure_growth_gap_points": expenditure_growth_gap_points,
+        "non_negative_balance_years": non_negative_balance_years,
+        "baseline": baseline,
         "largest_annual_change": largest_annual_change(history_crore),
         "stability_range": {
             "strongest_year": strongest_year,
