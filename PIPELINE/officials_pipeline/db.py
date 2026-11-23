@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 
-from officials_pipeline.scrapper import URL
+from PIPELINE.officials_pipeline.scrapper import URL
 
 is_connected = False
 

@@ -3,15 +3,15 @@ import argparse
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from deepak_pipeline.db import (
+from PIPELINE.water_and_finance_pipeline.db import (
     is_connected,
     save_document,
     save_finance_year,
     save_water_document,
     save_water_month,
 )
-from deepak_pipeline.parser import read_balance_sheet_pdf, read_water_quality_pdf
-from deepak_pipeline.scrapper import (
+from PIPELINE.water_and_finance_pipeline.parser import read_balance_sheet_pdf, read_water_quality_pdf
+from PIPELINE.water_and_finance_pipeline.scrapper import (
     discover_balance_sheets,
     discover_water_quality_reports,
     fetch_document,

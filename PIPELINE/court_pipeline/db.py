@@ -1,8 +1,8 @@
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 
-from court_pipeline.responsible import CHECKED_ON, RESPONSIBLE, SOURCE_URL
-from court_pipeline.scrapper import URL
+from PIPELINE.court_pipeline.responsible import CHECKED_ON, RESPONSIBLE, SOURCE_URL
+from PIPELINE.court_pipeline.scrapper import URL
 from opencity_settings import MONGODB_DB, MONGODB_URI
 
 is_connected = False

@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 
-from officials_pipeline.categories import get_category
+from PIPELINE.officials_pipeline.categories import get_category
 
 URL = "https://www.suratmunicipal.gov.in/Home/SMCOfficials"
 

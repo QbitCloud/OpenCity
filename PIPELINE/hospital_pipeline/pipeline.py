@@ -1,8 +1,8 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from hospital_pipeline.scrapper import scrape_hospitals
-from hospital_pipeline.db import is_connected, save_hospitals
+from PIPELINE.hospital_pipeline.scrapper import scrape_hospitals
+from PIPELINE.hospital_pipeline.db import is_connected, save_hospitals
 
 
 def run():

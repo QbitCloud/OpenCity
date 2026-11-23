@@ -1,8 +1,8 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from school_pipeline.scrapper import scrape_schools
-from school_pipeline.db import next_year, save_schools
+from PIPELINE.school_pipeline.scrapper import scrape_schools
+from PIPELINE.school_pipeline.db import next_year, save_schools
 
 
 def run():

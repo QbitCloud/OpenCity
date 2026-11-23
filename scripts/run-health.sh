@@ -2,4 +2,4 @@
 set -e
 
 cd "$(dirname "$0")/.."
-python3 -m deepak_pipeline.pipeline
+exec python -m PIPELINE.health_pipeline.pipeline

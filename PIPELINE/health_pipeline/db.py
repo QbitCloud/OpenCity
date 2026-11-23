@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 
-from health_pipeline.scrapper import URL
+from PIPELINE.health_pipeline.scrapper import URL
 from opencity_settings import MONGODB_DB, MONGODB_URI
 
 is_connected = False

@@ -1,8 +1,8 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from court_pipeline.scrapper import fetch_page, scrape_courts
-from court_pipeline.db import is_connected, save_court_officials, save_courts
+from PIPELINE.court_pipeline.scrapper import fetch_page, scrape_courts
+from PIPELINE.court_pipeline.db import is_connected, save_court_officials, save_courts
 
 
 def run():

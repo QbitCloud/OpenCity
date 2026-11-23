@@ -2,4 +2,4 @@
 set -e
 
 cd "$(dirname "$0")/.."
-python -m school_pipeline.pipeline
+exec python -m PIPELINE.school_pipeline.pipeline

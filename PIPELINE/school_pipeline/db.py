@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-from school_pipeline.scrapper import URL
+from PIPELINE.school_pipeline.scrapper import URL
 from opencity_settings import MONGODB_DB, MONGODB_URI
 
 # Create a separate client for this pipeline.
