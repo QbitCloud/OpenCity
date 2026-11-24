@@ -1,4 +1,3 @@
-"""Read the latest annual SMC finance figures exported by the pipeline."""
 import csv
 
 from opencity_settings import FINANCE_CSV_PATH

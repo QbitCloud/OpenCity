@@ -1,11 +1,32 @@
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 
-from PIPELINE.court_pipeline.responsible import CHECKED_ON, RESPONSIBLE, SOURCE_URL
 from PIPELINE.court_pipeline.scrapper import URL
 from opencity_settings import MONGODB_DB, MONGODB_URI
 
 is_connected = False
+SOURCE_URL = "https://surat.dcourts.gov.in/list-of-judges/"
+CHECKED_ON = "2026-11-18"
+
+DISTRICT_JUDGE = {
+    "post": "Principal District and Sessions Judge, Surat",
+    "name": "Mr. R. A. Trivedi",
+}
+CHIEF_JUDICIAL_MAGISTRATE = {
+    "post": "Chief Judicial Magistrate, Surat",
+    "name": "Mr. Y. I. Shaikh",
+}
+RESPONSIBLE = {
+    "total_pending": DISTRICT_JUDGE,
+    "civil_pending": DISTRICT_JUDGE,
+    "criminal_pending": CHIEF_JUDICIAL_MAGISTRATE,
+    "pre_litigation": CHIEF_JUDICIAL_MAGISTRATE,
+    "Cases Instituted in Last Month": DISTRICT_JUDGE,
+    "Cases Disposed in Last Month": DISTRICT_JUDGE,
+    "Filed Cases By Woman": DISTRICT_JUDGE,
+    "Filed Cases By Senior Citizen": DISTRICT_JUDGE,
+    "pending_by_age": DISTRICT_JUDGE,
+}
 
 try:
     client = MongoClient(MONGODB_URI, serverSelectionTimeoutMS=10000)
