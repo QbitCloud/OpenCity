@@ -17,6 +17,7 @@ def sources():
         ("Finance · SMC balance sheets", "https://www.suratmunicipal.gov.in/Departments/Accounts/BalanceSheet"),
         ("Water · SMC water quality reports", "https://www.suratmunicipal.gov.in/Departments/HydraulicWaterQuality"),
         ("Officials · SMC officials directory", "https://www.suratmunicipal.gov.in/Home/SMCOfficials"),
+        ("Home page map · © OpenStreetMap contributors", "https://www.openstreetmap.org/copyright"),
     ]
 
     for name, url in data_sources:
@@ -176,6 +177,7 @@ def sources():
         "City score = average of the School, Hospital, Water Quality, Courts and Finance scores, each for its latest data "
         "and weighted equally. Pages without a score are left out."
     )
+    st.write("Star rating = city score ÷ 20, out of 5 stars. The stars are rounded to the nearest whole star; the rating is shown to one decimal.")
     st.caption(
         "Equal weighting follows the India Justice Report, which weights every indicator, theme and pillar equally. "
         "The city score is a dashboard summary, not an official rating."

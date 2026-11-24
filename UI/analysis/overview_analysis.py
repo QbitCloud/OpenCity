@@ -27,7 +27,7 @@ def school_page(school_records):
 # Hospital: SMC's health centres against the NUHM norms, as on the Hospital page
 def hospital_page(centres):
     analysis = health_centre_analysis(centres)
-    return page_score("Hospital", analysis["score"], analysis["score_text"], "Health centres against norms", "Census 2011 population")
+    return page_score("Health", analysis["score"], analysis["score_text"], "Health centres against norms", "Census 2011 population")
 
 
 # Water Quality: the latest month's compliance in the score bands, as on the Water Quality page
@@ -66,7 +66,8 @@ def finance_page(finance_data):
     return page_score("Finance", score, score_text, "Finance score", "Financial year " + latest_year)
 
 
-# Every page's score, and the city score: their average, with every page weighted equally
+# Every page's score, and the city score: their average, with every page weighted equally,
+# shown as a rating out of 5 stars (average / 20)
 def city_scores(school_records, centres, water_data, court_records, finance_data):
     pages = [
         school_page(school_records),
@@ -76,10 +77,18 @@ def city_scores(school_records, centres, water_data, court_records, finance_data
         finance_page(finance_data),
     ]
     scored = [page["score"] for page in pages if page["score"] is not None]
-    city = sum(scored) / len(scored) if scored else None
+    detail = f"Average of {len(scored)} of {len(pages)} page scores"
+
+    if not scored:
+        return {"pages": pages, "city_stars": "☆☆☆☆☆", "city_text": "No data", "city_detail": detail}
+
+    city = sum(scored) / len(scored)
+    rating = round(city / 20, 1)
+    filled = int(rating + 0.5)  # nearest whole star, halves round up
 
     return {
         "pages": pages,
-        "city_text": "No data" if city is None else f"{city:.0f} / 100",
-        "city_detail": f"Average of {len(scored)} of {len(pages)} page scores",
+        "city_stars": "★" * filled + "☆" * (5 - filled),
+        "city_text": f"{rating:.1f} out of 5",
+        "city_detail": f"{detail}: {city:.0f} / 100",
     }
